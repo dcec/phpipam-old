@@ -755,9 +755,11 @@ function setModifySubnetDetailsQuery ($subnetDetails)
         $query .= ' "'. $subnetDetails['mask'] 			 .'", ' . "\n"; 
         $query .= ' "'. $subnetDetails['sectionId'] 	 .'", ' . "\n"; 
         $query .= ' "'. $subnetDetails['description']    .'", ' . "\n"; 
-        $query .= ' "'. $subnetDetails['vlanId'] 		 .'", ' . "\n"; 
-        $query .= ' "'. $subnetDetails['vrfId'] 		 .'", ' . "\n"; 
-        $query .= ' "'. $subnetDetails['masterSubnetId'] .'", ' . "\n"; 
+		$query .= ' "'. $subnetDetails['vlanId'] 		 .'", ' . "\n"; 
+        $query .= ' "'. $subnetDetails['vrfId'] 		 .'", ' . "\n";
+		$query .= ' "'. $subnetDetails['siteId'] 		 .'", ' . "\n";
+
+        $query .= ' "'. $subnetDetails['masterSubnetId'] .'", ' . "\n";  
         $query .= ''. isCheckbox($subnetDetails['allowRequests']) .','."\n";
         $query .= ''. isCheckbox($subnetDetails['showName']) .','."\n";  
         $query .= ' "'. $subnetDetails['permissions'] .'", '."\n"; 
@@ -805,7 +807,11 @@ function setModifySubnetDetailsQuery ($subnetDetails)
         }
         $query .= '`vlanId`        	= "'. $subnetDetails['vlanId'] 			.'", '. "\n";
         $query .= '`vrfId`        	= "'. $subnetDetails['vrfId'] 			.'", '. "\n";
+		$query .= '`siteId`        	= "'. $subnetDetails['siteId'] 			.'", '. "\n";
         $query .= '`masterSubnetId` = "'. $subnetDetails['masterSubnetId'] 	.'", '. "\n";
+		if($subnetDetails['inheritsPermissions'] == 1) {
+        $query .= '`permissions`      = "'. $subnetDetails['permissions'] 	.'", '. "\n";
+        }
         $query .= '`allowRequests`  = "'. isCheckbox($subnetDetails['allowRequests']) 	.'", '. "\n";
         $query .= '`showName`   	= "'. isCheckbox($subnetDetails['showName']) 		.'", '. "\n";
         $query .= '`pingSubnet`   	= "'. isCheckbox($subnetDetails['pingSubnet']) 		.'" '. "\n";
@@ -1096,6 +1102,35 @@ function updateSubnetPermissions ($subnet)
 	return true;	
 }
 
+/**
+ *	Update subnet permissions
+ */
+function updateSitePermissions ($site)
+{
+    global $db;                                                                     # get variables from config file
+    $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);	# open db connection   
+
+    # replace special chars
+    $site['permissions'] = mysqli_real_escape_string($database, $site['permissions']);
+
+    # set querries for subnet and each slave
+    foreach($site['slaves'] as $slave) {
+    	$query .= "update `sites` set `permissions` = '$site[permissions]' where `siteId` = $slave;";	
+    	
+    	writeChangelog('site', 'perm_change', 'success', array(), array("permissions_change"=>"$site[permissions]", "siteId"=>$slave));
+    }
+    
+	# execute
+    try { $database->executeMultipleQuerries($query); }
+    catch (Exception $e) { 
+    	$error =  $e->getMessage(); 
+    	print('<div class="alert alert-danger">'._('Error').': '.$error.'</div>');
+    	return false;
+    }
+  
+	/* return true if passed */
+	return true;	
+}
 
 
 
@@ -1731,6 +1766,122 @@ function updateVLANDetails($vlan, $lastId = false)
     else		{ return true; }
 }
 
+/* @SITE functions ---------------- */
+
+
+/**
+ * Update SITE details
+ */
+function updateSITEDetails($site, $lastId = false)
+{
+    global $db;                                                                      # get variables from config file
+    $database = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
+
+    /* set querry based on action */
+    if($site['action'] == "add") {
+    
+        # custom fields
+        $myFields = getCustomFields('sites');
+        $myFieldsInsert['query']  = '';
+        $myFieldsInsert['values'] = '';
+	
+		if (!isset($_SESSION)) {  session_start(); }
+		# redirect if not authenticated */
+		if (empty($_SESSION['ipamusername'])) 	{ return "0"; }
+		else									{ $username = $_SESSION['ipamusername']; }
+		
+		# get all user groups
+		$user = getUserDetailsByName ($username);
+		#print ("<div class='alert alert-info'>Query:$user,".$user['groups']."</div>");
+		$groups = json_decode($user['groups']);
+		$masterSite = subnetGetSITEdetailsById ($site['masterSiteId']);
+		$siteP = json_decode($masterSite['permissions']);
+		$sitePP = parseSectionPermissions($masterSite['permissions']);
+		foreach($siteP as $sk=>$sp) {
+			foreach($groups as $uk=>$up) {
+				if($uk == $sk) {
+					if($sp != "3") { $new = $sk; }
+				}	
+			}
+		}
+		$sitePP[$new] = "3";
+		$masterSite['permissions'] = json_encode($sitePP);
+		
+        if(sizeof($myFields) > 0) {
+			/* set inserts for custom */
+			foreach($myFields as $myField) {	
+				# empty?
+				if(strlen($site[$myField['name']])==0) {		
+					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'`';
+					$myFieldsInsert['values'] .= ", NULL";
+				} else {
+					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'`';
+					$myFieldsInsert['values'] .= ", '". $site[$myField['name']] . "'";
+				}
+			}
+		}
+		$masterSite['permissions'] = mysqli_real_escape_string($database, $masterSite['permissions']);
+    	$query  = 'insert into `sites` '. "\n";
+    	$query .= '(`name`,`company`,`location`,`masterSiteId`,`permissions` '.$myFieldsInsert['query'].') values '. "\n";
+   		$query .= '("'. $site['name'] .'", "'. $site['company'] .'", "'. $site['location'] .'", "'. $site['masterSiteId'] .'", "'. $masterSite['permissions'] .'" '. $myFieldsInsert['values'] .' ); '. "\n";
+
+    }
+    else if($site['action'] == "edit") {
+    
+        # custom fields
+        $myFields = getCustomFields('sites');
+        $myFieldsInsert['query']  = '';
+	
+        if(sizeof($myFields) > 0) {
+			/* set inserts for custom */
+			foreach($myFields as $myField) {
+				if(strlen($site[$myField['name']])==0) {
+					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'` = NULL ';				
+				} else {
+					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'` = "'.$site[$myField['name']].'" ';					
+				}		
+			}
+		}
+    
+    	$query  = 'update `sites` set '. "\n";    
+    	$query .= '`name` = "'. $site['name'] .'", `company` = "'. $site['company'] .'", `location` = "'. $site['location'] .'", `masterSiteId` = "'. $site['masterSiteId'] .'" '. "\n";   
+    	$query .= $myFieldsInsert['query'];  
+    	$query .= 'where `siteId` = "'. $site['siteId1'] .'";'. "\n";    
+    }
+    else if($site['action'] == "delete") {
+    	$query  = 'delete from `sites` where `siteId` = "'. $site['siteId1'] .'";'. "\n";
+    }
+    
+    /* execute */
+    try { $res = $database->executeQuery( $query, true ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+   		updateLogTable ('SITE ' . $site['action'] .' failed ('. $site['name'] . ')'.$error, $log, 2);
+    	return false;
+    }
+    
+    # if delete also NULL all subnets!
+    if($site['action'] == 'delete') {
+	    $query = "update `subnets` set `siteId` = NULL where `siteId` = '$site[siteId]';";
+	    /* execute */
+	    try { $database->executeQuery( $query ); }
+	    catch (Exception $e) {
+    		$error =  $e->getMessage();
+    		print ('<div class="alert alert-danger alert-absolute">'.$error.'</div>');
+    	}
+    }
+    
+    /* prepare log */ 
+    $log = prepareLogFromArray ($site);
+    
+    /* return success */
+    updateLogTable ('SITE ' . $site['action'] .' success ('. $site['name'] . ')', $log, 0);
+    
+    /* response */
+    if($lastId)	{ return $res; }
+    else		{ return true; }
+}
 
 
 
@@ -1760,6 +1911,9 @@ function updateSettings($settings)
 	$query   .= '`domainAuth` 		  = "'. isCheckbox($settings['domainAuth']) .'", ' . "\n";
 	$query   .= '`enableIPrequests`   = "'. isCheckbox($settings['enableIPrequests']) .'", ' . "\n";
 	$query   .= '`enableVRF`   		  = "'. isCheckbox($settings['enableVRF']) .'", ' . "\n";
+	$query   .= '`enableSite`   	  = "'. isCheckbox($settings['enableSite']) .'", ' . "\n";
+	$query   .= '`enableNEDI`   	  = "'. isCheckbox($settings['enableNEDI']) .'", ' . "\n";
+	$query   .= '`enableGLPI`   	  = "'. isCheckbox($settings['enableGLPI']) .'", ' . "\n";
 	$query   .= '`donate`   		  = "'. isCheckbox($settings['donate']) .'", ' . "\n";
 	$query   .= '`enableDNSresolving` = "'. isCheckbox($settings['enableDNSresolving']) .'", ' . "\n";  
 	$query   .= '`dhcpCompress` 	  = "'. isCheckbox($settings['dhcpCompress']) .'", ' . "\n";  
@@ -2127,6 +2281,9 @@ function getCustomFields($table)
 	}
 	elseif($table == "vlans") {
 		unset($res['vlanId'], $res['name'], $res['number'], $res['description'],$res['editDate']);		
+	}
+	elseif($table == "sites") {
+		unset($res['siteId'], $res['name'], $res['company'], $res['location'],$res['permissions'],$res['editDate'], $res['masterSiteId']);
 	}
 	
 	return $res;

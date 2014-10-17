@@ -340,6 +340,27 @@ function getVLANbyNumber ($number)
 	else 					{ return $vlan; }
 }
 
+/**
+ *	get SITE details by ID
+ */
+function getSITEbyname ($name) 
+{
+    global $database;                                                                      # get variables from config file
+	/* execute query */
+	$query = 'select * from `sites` where `name` = "'. $name .'";';
+    
+    /* execute */
+    try { $site = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    } 
+   	
+   	/* return false if none, else list */
+	if(sizeof($site) == 0) 	{ return false; }
+	else 					{ return $site; }
+}
 
 /**
  *	get VLAN details by ID
@@ -1120,6 +1141,28 @@ function getSubnetDetailsById ($id)
 	}
 }
 
+/**
+ * Get details for requested subnet by ID
+ */
+function getSiteDetailsById ($siteId)
+{
+    global $db;                                                                      # get variables from config file 
+    /* set query, open db connection and fetch results */
+    $query         = 'select * from `sites` where `siteId` = "'. $siteId .'";';
+    $database      = new database($db['host'], $db['user'], $db['pass'], $db['name']);
+
+    /* execute */
+    try { $SubnetDetails = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    } 
+    $database->close();
+
+    /* return subnet details - only 1st field! We cannot do getRow because we need associative array */
+    if(sizeof($SubnetDetails) > 0) { return($SubnetDetails[0]); }
+}
 
 /**
  * Calculate subnet details
@@ -1392,6 +1435,33 @@ function subnetContainsSlaves($subnetId)
 	}
 }
 
+/**
+ * Check if site contains slaves
+ */
+function siteContainsSlaves($siteId)
+{
+    global $db;                                                                      # get variables from config file
+    $database    = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
+    
+    /* get all ip addresses in subnet */
+    $query 		  = 'SELECT count(*) from sites where `masterSiteId` = "'. $siteId .'";';    
+
+    /* execute */
+    try { $slaveSites = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    }    
+
+
+
+
+	
+	if($slaveSites[0]['count(*)']) { return true; }
+	else 							 { return false; }
+
+}
 
 /**
  * Verify IPv4 subnet overlapping
@@ -1689,8 +1759,254 @@ function printDropdownMenuBySection($sectionId, $subnetMasterId = "0")
 		
 		print implode( "\n", $html );
 }
+/**
+ *	Print dropdown menu for subnets in section!
+ */
+function printDropdownMenuBySite($subnetSiteId = "0") 
+{
+		# get all sites
+		#$sites = fetchSites ($siteId);
+		$sites = getAllSITEs();
+		$html = array();
+		$children = array();
+		$rootId = 0;									# root is 0
+		
+		# on-the-fly
+		#if(checkAdmin(false)){
+		$tmp[1]['siteId'] = 'Add';
+		$tmp[1]['name'] = _('+ Add new SITE');	
+		$tmp[1]['masterSiteId'] = 0;
+		
+		if($_POST['action'] != "add") {array_unshift($sites, $tmp[1]);}
+		#}
+		# sites
+		foreach ( $sites as $item )
+			$children[$item['masterSiteId']][] = $item;
+		
+		# loop will be false if the root has no children (i.e., an empty menu!)
+		$loop  = !empty( $children[$rootId] );
+		
+		# initializing $parent as the root
+		$parent = $rootId;
+		
+		#$parent_stackF = array();
+		$parent_stack  = array();
+		
+		
+		# structure
+		$html[] = "<select name='siteId' class='form-control input-sm input-w-auto input-max-200'>";
+
+		# subnets
+		$html[] = "<optgroup label='"._("Sites")."'>";
+		
+		# display selected subnet as opened
+		$allParents = getAllSiteParents ($_REQUEST['siteId']);
+		
+		# root subnet
+		#if(checkAdmin(false)){
+			if(!isset($subnetSiteId) || $subnetSiteId==0) {
+				$html[] = "<option value='0' selected='selected'>"._("Root site")."</option>";
+			} else {
+				$html[] = "<option value='0'>"._("Root site")."</option>";			
+			}
+		#}		
+		# return table content (tr and td's) - subnets
+		while ( $loop && ( ( $option = each( $children[$parent] ) ) || ( $parent > $rootId ) ) )
+		{
+			# repeat 
+			$repeat  = str_repeat( " - ", ( count($parent_stack)) );
+			# dashes
+			if(count($parent_stack) == 0)	{ $dash = ""; }
+			else							{ $dash = $repeat; }
+							
+			# count levels
+			$count = count( $parent_stack ) + 1;
+			
+			# print table line if it exists and it is not folder
+			if(strlen($option['value']['name']) > 0) { 
+				# selected
+				$permission = checkSitePermission ($option['value']['siteId']);
+				$printSITE = $option['value']['name'];
+				
+				if(!empty($option['value']['company']) && strlen($option['value']['name']) < 25) { $printSITE .= " (".$option['value']['company'].")"; }
+				
+				if ($permission > 0 || $option['value']['siteId'] == "Add"){
+				if($option['value']['siteId'] == $subnetSiteId) 	{ $html[] = "<option value='".$option['value']['siteId']."' selected='selected'>$repeat ".$printSITE."</option>"; }
+				else 											{ $html[] = "<option value='".$option['value']['siteId']."'>$repeat ".$printSITE."</option>"; }
+				}
+			}
+			
+			if ( $option === false ) { $parent = array_pop( $parent_stack ); }
+			# Has slave subnets
+			elseif ( !empty( $children[$option['value']['siteId']] ) ) {														
+				array_push( $parent_stack, $option['value']['masterSiteId'] );
+				$parent = $option['value']['siteId'];
+			}
+			# Last items
+			else { }
+		}
+		$html[] = "</optgroup>";
+		$html[] = "</select>";
+		
+		print implode( "\n", $html );
+}
+
+function printDropdownMenuByMasterSite($masterSiteId = "0",$SiteId = "0") 
+{
+		# get all sites
+		#$sites = fetchSites ($siteId);
+		$sites = getAllSITEs();
+		$html = array();
+		$children = array();
+		$rootId = 0;									# root is 0
+		
+		# on-the-fly
+		#if(checkAdmin(false)){
+		$tmp[1]['siteId'] = 'Add';
+		$tmp[1]['name'] = _('+ Add new SITE');	
+		$tmp[1]['masterSiteId'] = 0;
+		
+		if($_POST['action'] != "add") {array_unshift($sites, $tmp[1]);}
+		#}
+		# sites
+		foreach ( $sites as $item )
+			$children[$item['masterSiteId']][] = $item;
+		
+		# loop will be false if the root has no children (i.e., an empty menu!)
+		$loop  = !empty( $children[$rootId] );
+		
+		# initializing $parent as the root
+		$parent = $rootId;
+		
+		#$parent_stackF = array();
+		$parent_stack  = array();
+		
+		
+		# structure
+		$html[] = "<select name='masterSiteId' class='form-control input-sm input-w-auto input-max-200'>";
+
+		# subnets
+		$html[] = "<optgroup label='"._("Sites")."'>";
+		
+		# display selected subnet as opened
+		#$allParents = getAllSiteParents ($_REQUEST['siteId']);
+		
+		# root subnet
+		if(checkAdmin(false)){
+			if(!isset($masterSiteId) || $masterSiteId==0) {
+				$html[] = "<option value='0' selected='selected'>"._("Root site")."</option>";
+			} else {
+				$html[] = "<option value='0'>"._("Root site")."</option>";			
+			}
+		}		
+		# return table content (tr and td's) - subnets
+		while ( $loop && ( ( $option = each( $children[$parent] ) ) || ( $parent > $rootId ) ) )
+		{
+			# repeat 
+			$repeat  = str_repeat( " - ", ( count($parent_stack)) );
+			# dashes
+			if(count($parent_stack) == 0)	{ $dash = ""; }
+			else							{ $dash = $repeat; }
+							
+			# count levels
+			$count = count( $parent_stack ) + 1;
+			
+			# print table line if it exists and it is not folder
+			if(strlen($option['value']['name']) > 0) { 
+				# selected
+				$permission = checkSitePermission ($option['value']['siteId']);
+				$printSITE = $option['value']['name'];
+				
+				if(!empty($option['value']['company']) && strlen($option['value']['name']) < 25) { $printSITE .= " (".$option['value']['company'].")"; }
+				
+				if ($permission > 0 && $option['value']['siteId'] != $SiteId){
+					if($option['value']['siteId'] == $masterSiteId) 	{ $html[] = "<option value='".$option['value']['siteId']."' selected='selected'>$repeat ".$printSITE."</option>"; }
+					else 											{ $html[] = "<option value='".$option['value']['siteId']."'>$repeat ".$printSITE."</option>"; }
+				}
+			}
+			
+			if ( $option === false ) { $parent = array_pop( $parent_stack ); }
+			# Has slave subnets
+			elseif ( !empty( $children[$option['value']['siteId']] ) ) {														
+				array_push( $parent_stack, $option['value']['masterSiteId'] );
+				$parent = $option['value']['siteId'];
+			}
+			# Last items
+			else { }
+		}
+		$html[] = "</optgroup>";
+		$html[] = "</select>";
+		
+		print implode( "\n", $html );
+}
 
 
+/**
+ *	get whole tree path for subnetId - from slave to parents
+ */
+function getAllSiteParents ($siteId) 
+{
+	$parents = array();
+	$root = false;
+	
+	while($root == false) {
+		$subd = getSiteDetailsById($siteId);		# get site details
+		
+		if($subd['masterSiteId'] != 0) {
+			array_unshift($parents, $subd['masterSiteId']);
+			$siteId  = $subd['masterSiteId'];
+		}
+		else {
+			array_unshift($parents, $subd['masterSiteId']);
+			$root = true;
+		}
+	}
+
+	return $parents;
+}
+
+/**
+ * Get all subnets in provided sectionId
+ */
+function fetchSites ($siteId, $orderType = "subnet", $orderBy = "asc" )
+{
+    global $db;                                                                      # get variables from config file
+    /* check for sorting in settings and override */
+    $settings = getAllSettings();
+    
+    /* get section details to check for ordering */
+    #$section = getSectionDetailsById ($siteId);
+    
+    // section ordering
+   # if($section['subnetOrdering']!="default" && strlen($section['subnetOrdering'])>0 ) {
+	#    $sort = explode(",", $section['subnetOrdering']);
+	#    $orderType = $sort[0];
+	#    $orderBy   = $sort[1];	    
+   # }
+    // default - set via settings
+    #elseif(isset($settings['subnetOrdering']))	{
+	#    $sort = explode(",", $settings['subnetOrdering']);
+	#    $orderType = $sort[0];
+	#    $orderBy   = $sort[1];
+   # }
+
+    /* set query, open db connection and fetch results */
+    $query 	  = "select * from `sites` order by masterSiteId;"; # ORDER BY `isFolder` desc,`masterSubnetId`,`$orderType` $orderBy
+    
+    $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);
+    
+    /* execute */
+    try { $sites = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    } 
+    $database->close();
+
+    /* return subnets array */
+    return($sites);
+}
 /**
  * Get VLAN number form Id
  */
@@ -1699,6 +2015,29 @@ function subnetGetVLANdetailsById($vlanId)
 	return getVLANbyId($vlanId);
 }
 
+/**
+ * Get SITE number form Id
+ */
+function subnetGetSITEdetailsById($siteId)
+{
+    global $db;                                                                      # get variables from config file
+    $database    = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
+    
+    /* first update request */
+    $query    = 'select * from `sites` where `siteId` = "'. $siteId .'";';
+
+    /* execute */
+    try { $site = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    }   
+  
+	/* return site details if exists */
+	if(sizeof($site) != 0) 	{ return $site[0]; }	
+	else 					{ return false; }
+}
 
 /**
  * Get all VLANS
@@ -2900,7 +3239,28 @@ function countIPaddressesBySwitchId ( $id )
     return $ip[0]['count'];
 }
 
+function countIPaddresses () 
+{
+    global $db;                                                                      # get variables from config file
+    $database    = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
+    
+    /* get all vlans, descriptions and subnets */
+    $query = 'SELECT switch,count(switch) as `count` FROM `ipaddresses` group by switch;'; 
 
+    /* execute */
+    try { $ip = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    }   
+    
+	foreach($ip as $r) {
+		$count[$r['switch']] = $r['count'];
+	}
+    /* return vlans */
+    return $count;
+}
 
 
 
