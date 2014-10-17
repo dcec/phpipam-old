@@ -149,6 +149,7 @@ if($sectionPermission == 3) {
 	print "	<span>"._('Add new');
 	print "	<div class='btn-group'>";
 	print "	 <button id='add_subnet' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Add new subnet to')." $sectionName[name]'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='add'><i class='fa fa-sm fa-plus'></i></button>";
+	if (checkAdmin(false)) {print "	 <button id='scan_subnet' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Scan new subnet')."'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='scan'><i class='fa fa-sm fa-asterisk'></i></button>";}
 	print "	 <button id='add_folder' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Add new folder to')." $sectionName[name]'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='add'><i class='fa fa-sm fa-folder'></i></button>";
 	print "	</div>";
 	print "	</span>";

@@ -125,6 +125,11 @@ else								 		{ $url = "http://$_SERVER[SERVER_NAME]".BASE; }
 
 <!-- header -->
 <div class="row" id="header">
+	<div class="col-lg-3 col-md-3 pull-left">
+	
+	<img border="0" src="css/images/OTB_LOGO.png" alt="OTB Logo" width="50%" height="50%">
+	
+	</div>
 
 	<!-- usermenu -->
 	<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 pull-right" id="user_menu">
@@ -133,7 +138,7 @@ else								 		{ $url = "http://$_SERVER[SERVER_NAME]".BASE; }
   
  
 	<!-- title -->
-	<div class="col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-12 col-xs-12">
+	<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 		<div class="hero-pusher hidden-xs hidden-sm"></div>
 		<div class="hero-unit">
 			<a href=""><?php print $settings['siteTitle']; if($_REQUEST['page'] == "login") { print " | "._('login'); } if($_REQUEST['page'] == "install") { print " | "._('installation'); } ?></a>

@@ -19,12 +19,17 @@ CheckReferrer();
 /* get all posted variables */
 $request = $_POST;
 
+/* check for duplicate entry! needed only in case new IP address is added, otherwise the code is locked! */
+if (checkDuplicate ($request['ip_addr'], $request['subnetId'])) {
+	die ('<div class="alert alert-danger">'._('IP address').' '. $request['ip_addr'] .' '._('already existing in database').'!</div>');
+}
+
 /* first get subnet details */
 $subnet = getSubnetDetailsById ($request['subnetId']);
 $subnet2 = $subnet;												//for later check
 $subnet['subnet'] = Transform2long ($subnet['subnet']);
 $subnet = $subnet['subnet'] . "/" . $subnet['mask'];
-
+			
 /* verify email */
 if(!checkEmail($request['requester']) ) 						{ die('<div class="alert alert-danger alert-nomargin alert-norounded">'._('Please provide valid email address').'! ('._('requester').': <del>'. $request['requester'] .'</del>)</div>');	 }
 

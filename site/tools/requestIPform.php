@@ -1,3 +1,7 @@
+<?php
+require_once('../../functions/functions.php');
+$mail = getActiveUserDetails();
+?>
 <!-- header -->
 <div class="pHeader"><?php print _('IP request form');?></div>
 
@@ -9,7 +13,7 @@
 	<table id="requestIP" class="table table-striped table-condensed">
 
 	<tr>
-		<td><?php print _('IP address');?> *</td>
+		<td><?php print _('IP address proposed');?> *</td>
 		<td>
 			<?php  
 			require_once('../../functions/functions.php');
@@ -18,7 +22,12 @@
 			# get subnet details
 			$subnet = getSubnetDetailsById($_POST['subnetId']);
 			?>
+			<div class="input-group">
 			<input type="text" name="ip_addr" class="ip_addr form-control" size="30" value="<?php print $first; ?>">
+			<span class="input-group-addon">
+    			<i class="fa fa-gray fa-info" rel="tooltip" data-html='true' data-placement="left" title="<?php print _('You can add,edit or delete multiple IP addresses<br>by specifying IP range (e.g. 10.10.0.0-10.10.0.25)'); ?>"></i>
+    		</span>
+			</div>
 			
 			<input type="hidden" name="subnetId" value="<?php print $subnet['id']; ?>">
 		</td>
@@ -41,14 +50,14 @@
 		<td><?php print _('Owner');?></td>
 		<td>	
 		<!-- autocomplete -->
-		<input type="text" class="form-control" name="owner" id="owner" size="30" placeholder="<?php print _('Owner of IP address');?>"></td>
+		<input type="text" class="form-control" name="owner" id="owner" size="30" placeholder="<?php print _('Owner of IP address');?>" value="<?php print $mail['real_name']; ?>"></td>
 	</tr>
 
 	<!-- requester -->
 	<tr>
-		<td><?php print _('Requester');?> *</td>
+		<td><?php print _('Requester email');?> *</td>
 		<td>
-			<input type="text" class="form-control" name="requester" size="30" placeholder="<?php print _('your email address');?>"></textarea>
+			<input type="text" class="form-control" name="requester" size="30" placeholder="<?php print _('your email address');?>" value="<?php print $mail['email']; ?>"></textarea>
 		</td>
 	</tr>
 

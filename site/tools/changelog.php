@@ -54,4 +54,9 @@ if($settings['enableChangelog'] == 1) {
 else {
 	print "<div class='alert alert-info'>"._("Change logging is disabled. You can enable it under administration")."!</div>";
 }
+
 ?>
+<!-- show table -->
+<div class="normalTable logs">
+<?php include('logResult.php'); ?>
+</div>		<!-- end filter overlay div -->

@@ -24,7 +24,7 @@ else{
 /**
  * Update log table
  */
-function updateLogTable ($command, $details = NULL, $severity = 0)
+function updateLogTable ($command, $details = NULL, $severity = 0,$user = NULL)
 {
     global $db;                                                                	
 	$database = new database($db['host'], $db['user'], $db['pass']);    
@@ -42,9 +42,11 @@ function updateLogTable ($command, $details = NULL, $severity = 0)
 	if (!$database->connect_error) {
 
 	   	/* set variable */
-	    $date = date("Y-m-d H:i:s");
-	    $user = getActiveUserDetails();
-	    $user = $user['username'];
+	    $date = date("Y-m-d H:i:s");	
+		if(!$user){
+			$user = getActiveUserDetails();
+			$user = $user['username'];
+		}
     
     	/* set query */
     	$query  = 'insert into logs '. "\n";
@@ -80,7 +82,7 @@ function getUserDetailsByName ($username)
 	}
 		
 	/* set query, open db connection and fetch results */
-    $query    = 'select * from users where username LIKE BINARY "'. $username .'";';
+    $query    = 'select * from users where username LIKE "'. $username .'";';
 
     /* execute */
     try { $details = $database->getArray( $query ); }
@@ -317,7 +319,7 @@ function checkLogin ($username, $md5password, $rawpassword)
     	if ( $settings['domainAuth'] != "0") {
     		
     		/* verify that user is in database! */
-    		$query 		= 'select * from `users` where `username` = binary "'. $username .'" and `domainUser` = "1" limit 1;';
+    		$query 		= 'select * from `users` where `username` = "'. $username .'" and `domainUser` = "1" limit 1;';
     		
     		/* execute */
     		try { $result = $database->getArray( $query ); }
@@ -331,6 +333,7 @@ function checkLogin ($username, $md5password, $rawpassword)
 
 				/* check if user exist in database and has domain user flag */		
 				$authAD = checkADLogin ($username, $rawpassword);
+				print ("<div class='alert alert-success'>".$authAD." :".$username." :".$rawpassword."</div>");
 		
 				if($authAD == "ok") {
 					# get user lang
@@ -393,7 +396,7 @@ function checkLogin ($username, $md5password, $rawpassword)
 			else {
 				# print error
 				if($settings['domainAuth'] == "1") {
-				    print('<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">×</button>'._('Wrong username or password').'!</div>');
+				    print('<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">×</button>'._('Wrong username or password ff').'!</div>');
 				    updateLogTable ('User '. $username .' failed to authenticate against AD.', "", 2); 
 				}
 				else {
@@ -424,7 +427,7 @@ function checkADLogin ($username, $password)
     $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);                                                                      
     
     /* check if user exists in local database */
-    $query 		= 'select count(*) as count from users where `username` = binary "'. $username .'" and `domainUser` = "1";';
+    $query 		= 'select count(*) as count from users where `username` = "'. $username .'" and `domainUser` = "1";';
     
     /* execute */
     try { $result = $database->getArray( $query ); }

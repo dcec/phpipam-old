@@ -27,6 +27,10 @@ $id = $_REQUEST['id'];
 $ip 	= getIpAddrDetailsById ($id);
 $subnet = getSubnetDetailsById ($ip['subnetId']);
 
+$cidr = $ip['ip_addr']."/".$subnet['mask'];
+# verify input CIDR
+$errors = verifyCidr ($cidr,0);
+$subdetail = calculateIpCalcResult($cidr);
 /* get VLAN details */
 $subnet['VLAN'] = subnetGetVLANdetailsById($subnet['vlanId']);
 $subnet['vlan'] = $subnet['VLAN']['number'];
@@ -40,7 +44,15 @@ $title = _('IP address details').' :: ' . $ip['ip_addr'];
 
 
 /* Preset content */
-$content .= '&bull; '._('IP address').': ' . "\t" . $ip['ip_addr'] . '/' . $subnet['mask']. "\n";
+#$content .= '&bull; '._('IP address').': ' . "\t" . $ip['ip_addr'] . '/' . $subnet['mask']. "\n";
+$content .= '&bull; '._('IP address').': ' . "\t" . $ip['ip_addr']. "\n";
+
+$content .= '&bull; '._('IP Mask').': ' . "\t\t" . $subdetail['Subnet netmask']. "\n";
+
+if(!empty($subnet['Gateway'])) {
+
+	$content .= '&bull; '._('IP Gateway').': ' . "\t" . $subnet['Gateway']. "\n";
+}
 # desc
 if(!empty($ip['description'])) {
 $content .= '&bull; '._('Description').':' . "\t" . $ip['description'] . "\n";

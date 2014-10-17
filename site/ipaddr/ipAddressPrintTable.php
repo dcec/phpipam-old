@@ -180,7 +180,7 @@ if($sizeIP  > $pageLimit) {
 	# IP address - mandatory
 										  print "<th class='s_ipaddr'><a href='' data-id='ip_addr|$sort[directionNext]' class='sort' data-subnetId='$SubnetDetails[id]' rel='tooltip' data-container='body' title='"._('Sort by IP address')."'>"._('IP address')." "; if($sort['field'] == "ip_addr") 	print $icon;  print "</a></th>";
 	# hostname - mandatory
-										  print "<th><a href='' data-id='dns_name|$sort[directionNext]' class='sort' data-subnetId='$SubnetDetails[id]' rel='tooltip' data-container='body'  title='"._('Sort by hostname')."'				>"._('Hostname')." "; 	if($sort['field'] == "dns_name") 	print $icon;  print "</a></th>";
+										  print "<th><a href='' data-id='dns_name|$sort[directionNext]' class='sort' data-subnetId='$SubnetDetails[id]' rel='tooltip' data-container='body'  title='"._('Sort by dns name')."'				>"._('DNS Name')." "; 	if($sort['field'] == "dns_name") 	print $icon;  print "</a></th>";
 	# Description - mandatory
 										  print "<th><a href='' data-id='description|$sort[directionNext]' class='sort' data-subnetId='$SubnetDetails[id]' rel='tooltip' data-container='body'  title='"._('Sort by description')."'			>"._('Description')." "; if($sort['field'] == "description") print $icon;  print "</a></th>";
 	# MAC address	
@@ -188,7 +188,7 @@ if($sizeIP  > $pageLimit) {
 	# note
 	if(in_array('note', $setFields)) 	{ print "<th></th>"; }	
 	# switch
-	if(in_array('switch', $setFields)) 	{ print "<th class='hidden-xs hidden-sm hidden-md'><a href='' data-id='switch|$sort[directionNext]' class='sort' data-subnetId='$SubnetDetails[id]' rel='tooltip' data-container='body'  title='"._('Sort by device')."'					>"._('Device')." "; 	if($sort['field'] == "switch") 		print $icon;  print "</a></th>"; }	
+	if(in_array('switch', $setFields)) 	{ print "<th class='hidden-xs hidden-sm hidden-md'><a href='' data-id='switch|$sort[directionNext]' class='sort' data-subnetId='$SubnetDetails[id]' rel='tooltip' data-container='body'  title='"._('Sort by hostname')."'					>"._('Hostname')." "; 	if($sort['field'] == "switch") 		print $icon;  print "</a></th>"; }	
 	# port
 	if(in_array('port', $setFields)) 	{ print "<th class='hidden-xs hidden-sm hidden-md'><a href='' data-id='port|$sort[directionNext]'   class='sort' data-subnetId='$SubnetDetails[id]' rel='tooltip' data-container='body'  title='"._('Sort by port')."'  					>"._('Port')." "; 		if($sort['field'] == "port") 		print $icon;  print "</a></th>"; }
 	# owner
@@ -350,7 +350,7 @@ else {
 		        	if(in_array('switch', $setFields)) 					{ 
 			        	# get switch details
 			        	$switch = getDeviceById ($ipaddress[$n]['switch']);
-																		  print "<td class='hidden-xs hidden-sm hidden-md'>".$switch['hostname']."</td>";
+																		  print "<td class='hidden-xs hidden-sm hidden-md'><a href='tools/devices/hosts/".$switch['id']."/'>".$switch['hostname']."</a></td>";
 																		}
 				
 					# print port

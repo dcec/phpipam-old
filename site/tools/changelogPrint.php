@@ -14,7 +14,7 @@ isUserAuthenticated ();
 
 # get clog entries
 if(!isset($_REQUEST['cfilter'])) 	{ $clogs = getAllChangelogs(false, "", $_REQUEST['climit']); }
-else								{ $clogs = getAllChangelogs(true, $_REQUEST['cfilter'], $_REQUEST['climit']); }
+else								{ $clogs = getAllChangelogs(true, "*".$_REQUEST['cfilter']."*", $_REQUEST['climit']); }
 
 # empty
 if(sizeof($clogs)==0) {

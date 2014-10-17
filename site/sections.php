@@ -96,8 +96,11 @@ $setFields = explode(";", $settings['IPfilter']);
 
 						//subsections
 						foreach($sves as $sl) {
-							if($_REQUEST['section']==$sl['id']) { print "<li class='active'><a href='subnets/$sl[id]/'><i class='fa fa-angle-right'></i> $sl[name]</a></li>"; }
-							else								{ print "<li><a href='subnets/$sl[id]/'><i class='fa fa-angle-right'></i> $sl[name]</a></li>"; }
+							$perm = checkSectionPermission ($sl['id']);
+							if($perm > 0 ) {
+								if($_REQUEST['section']==$sl['id']) { print "<li class='active'><a href='subnets/$sl[id]/'><i class='fa fa-angle-right'></i> $sl[name]</a></li>"; }
+								else								{ print "<li><a href='subnets/$sl[id]/'><i class='fa fa-angle-right'></i> $sl[name]</a></li>"; }
+							}
 						}
 						
 						print "		</ul>";
@@ -159,6 +162,9 @@ $setFields = explode(";", $settings['IPfilter']);
 		if($settings['enableVRF'] == 1) { 
 		print "		<li "; if($_REQUEST['adminId'] == "manageVRF") 		print "class='active'"; print "><a href='administration/manageVRF/'>"._('VRF')."</a></li>";
 		}
+		if($settings['enableSite'] == 1) { 
+		print "		<li "; if($_REQUEST['adminId'] == "manageSites") 		print "class='active'"; print "><a href='administration/manageSites/'>"._('Sites')."</a></li>";
+		}
 		print "		<li class='divider'></li>";
 		print "		<li><a href='administration/'>"._('Show all settings')."</a></li>";		
 		print "		</ul>";
@@ -186,6 +192,8 @@ $setFields = explode(";", $settings['IPfilter']);
 			    	print "	<li "; if($_REQUEST['toolsId'] == "vrf") 		print "class='active'"; print "><a href='tools/vrf/'>"._('VRFs')."</a></li>"; 
 				    }
 			    	print "	<li "; if($_REQUEST['toolsId'] == "vlan") 		print "class='active'"; print "><a href='tools/vlan/'>"._('VLANs')."</a></li>"; 	
+			    	print "	<li "; if($_REQUEST['toolsId'] == "subnets") 	print "class='active'"; print "><a href='tools/subnets/'>"._('Subnets')."</a></li>";
+					print "	<li "; if($_REQUEST['toolsId'] == "sites") 		print "class='active'"; print "><a href='tools/sites/'>"._('Sites')."</a></li>"; 					
 			    	print "	<li "; if($_REQUEST['toolsId'] == "subnets") 	print "class='active'"; print "><a href='tools/subnets/'>"._('Subnets')."</a></li>"; 
 			    	print "	<li "; if($_REQUEST['toolsId'] == "search") 	print "class='active'"; print "><a href='tools/search/'>"._('Search')."</a></li>"; 
 			    	print "	<li "; if($_REQUEST['toolsId'] == "instructions") 	print "class='active'"; print "><a href='tools/instructions/'>"._('Show IP addressing guide')."</a></li>"; 
@@ -246,6 +254,8 @@ $setFields = explode(";", $settings['IPfilter']);
 			    	print "	<li "; if($_REQUEST['toolsId'] == "vrf") 		print "class='active'"; print "><a href='tools/vrf/'>"._('VRFs')."</a></li>"; 
 				    }
 			    	print "	<li "; if($_REQUEST['toolsId'] == "vlan") 		print "class='active'"; print "><a href='tools/vlan/'>"._('VLANs')."</a></li>"; 	
+			    	print "	<li "; if($_REQUEST['toolsId'] == "subnets") 	print "class='active'"; print "><a href='tools/subnets/'>"._('Subnets')."</a></li>";
+					print "	<li "; if($_REQUEST['toolsId'] == "sites") 	print "class='active'"; print "><a href='tools/site/'>"._('Sites')."</a></li>";
 			    	print "	<li "; if($_REQUEST['toolsId'] == "subnets") 	print "class='active'"; print "><a href='tools/subnets/'>"._('Subnets')."</a></li>"; 
 			    	print "	<li "; if($_REQUEST['toolsId'] == "search") 	print "class='active'"; print "><a href='tools/search/'>"._('Search')."</a></li>"; 
 			    	print "	<li "; if($_REQUEST['toolsId'] == "favourites") print "class='active'"; print "><a href='tools/favourites/'>"._('Favourite networks')."</a></li>"; 

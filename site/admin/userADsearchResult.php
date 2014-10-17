@@ -33,12 +33,13 @@ try {
 
 	//try to login with higher credentials for search
 	$authUser = $adldap->user()->authenticate($ad['adminUsername'], $ad['adminPassword']);
+	print ("<div class='alert alert-success'>".$authUser.":".$ad['adminUsername'].":".$ad['adminPassword']."</div>");
 	if ($authUser == false) {
 		throw new adLDAPException ('Invalid credentials');
 	}
 	
 	// set OpenLDAP flag
-	if($settings['domainAuth'] == "2") { $adldap->setUseOpenLDAP(true); }
+	#if($settings['domainAuth'] == "2") { $adldap->setUseOpenLDAP(true); }
 
 	//search for domain user!
 	$userinfo = $adldap->user()->info("$_POST[dname]*", array("*"));
@@ -74,13 +75,13 @@ if(!isset($userinfo['count'])) {
 	if(sizeof(@$userinfo)>0 && isset($userinfo)) {
 	 	foreach($userinfo as $u) {
 			print "<tr>";
-			print "	<td>".$u['displayname'][0];
+			print "	<td>".$u['fullname'][0];
 			print "</td>";
-			print "	<td>".$u['samaccountname'][0]."</td>";
+			print "	<td>".$u['cn'][0]."</td>";
 			print "	<td>".$u['mail'][0]."</td>";
 			//actions
 			print " <td style='width:10px;'>";
-			print "		<a href='' class='btn btn-sm btn-default btn-success userselect' data-uname='".$u['displayname'][0]."' data-username='".$u['samaccountname'][0]."' data-email='".$u['mail'][0]."'>"._('Select')."</a>";
+			print "		<a href='' class='btn btn-sm btn-default btn-success userselect' data-uname='".$u['fullname'][0]."' data-username='".$u['cn'][0]."' data-email='".$u['mail'][0]."' domainUser='1' >"._('Select')."</a>";
 			print "	</td>";
 			print "</tr>";
 		}

@@ -733,6 +733,53 @@ function checkSubnetPermission ($subnetId)
 	return $out;
 }
 
+/**
+ *	Check subnet permissions
+ */
+function checkSitePermission ($siteId)
+{
+    # open session and get username / pass
+	if (!isset($_SESSION)) {  session_start(); }
+    # redirect if not authenticated */
+    if (empty($_SESSION['ipamusername'])) 	{ return "0"; }
+    else									{ $username = $_SESSION['ipamusername']; }
+    
+	# get all user groups
+	$user = getUserDetailsByName ($username);
+	$groups = json_decode($user['groups']);
+	
+	# if user is admin then return 3, otherwise check
+	if($user['role'] == "Administrator")	{ return "3"; }
+
+	# get subnet permissions
+	$site  = getSiteDetailsById($siteId);
+	$siteP = json_decode($site['permissions']);
+	
+	# get section permissions
+	#$section  = getSectionDetailsById($site['siteId']);
+	#$sectionP = json_decode($section['permissions']);
+	
+	# default permission
+	$out = 0;
+	
+	# for each group check permissions, save highest to $out
+	if(sizeof($siteP) > 0) {
+		foreach($siteP as $sk=>$sp) {
+			# check each group if user is in it and if so check for permissions for that group
+			foreach($groups as $uk=>$up) {
+				if($uk == $sk) {
+					if($sp > $out) { $out = $sp; }
+				}	
+			}
+		}
+	}
+	else {
+		$out = "0";
+	}
+	
+	# return result
+	return $out;
+}
 
 
 
@@ -1494,6 +1541,50 @@ function getAllSlaves ($subnetId, $multi = false)
 	}
 }
 
+/**
+ *	get whole tree path for subnetId - from parent all slaves
+ *
+ * 	if multi than create multidimensional array
+ */
+$removeSlaves = array();
+
+function getAllSiteSlaves ($siteId, $multi = false) 
+{
+	global $removeSlaves;
+	$end = false;			# breaks while
+	
+	$removeSlaves[] = $siteId;		# first
+
+	# db
+	global $db;                                                                      # get variables from config file
+	$database    = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
+
+	while($end == false) {
+		
+		/* get all immediate slaves */
+		$query = "select * from `sites` where `masterSiteId` = '$siteId' order by `siteId` asc; ";    
+		/* execute query */
+		try { $slaves2 = $database->getArray( $query ); }
+		catch (Exception $e) { 
+        	$error =  $e->getMessage(); 
+        	print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        	return false;
+        }
+		# we have more slaves
+		if(sizeof($slaves2) != 0) {
+			# recursive
+			foreach($slaves2 as $slave) {
+				$removeSlaves[] = $slave['id'];
+				getAllSlaves ($slave['id']);
+				$end = true;
+			}
+		}
+		# no more slaves
+		else {
+			$end = true;
+		}
+	}
+}
 
 /**
  *	print breadcrumbs

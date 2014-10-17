@@ -17,6 +17,9 @@ if($subnetPerm < 2) 								{ die('<div class="pHeader">Error</div><div class="a
 /* verify post */
 CheckReferrer();
 
+# get all site settings
+$settings = getAllSettings();
+
 # get subnet details
 $subnet = getSubnetDetailsById ($_POST['subnetId']);
 
@@ -34,6 +37,7 @@ $ip_addr = getIpAddressesBySubnetId ($_POST['subnetId']);
 
 <!-- content -->
 <div class="pContent">
+	
 
 	<table class="table table-noborder table-condensed">
 
@@ -52,12 +56,35 @@ $ip_addr = getIpAddressesBySubnetId ($_POST['subnetId']);
 	    		<optgroup label="<?php print _('Discovery scans');?>">
 		    		<option value="DiscoveryPing">Ping <?php print _('scan');?></option>
 		    		<option value="DiscoveryTelnet">Telnet <?php print _('scan');?></option>
+					<?php if ($settings['enableNEDI'] == 1) {
+						print "<option value='DiscoveryNedi'>NeDi "._('scan')."</option>";
+					}
+					if ($settings['enableGLPI'] == 1) {
+						print "<option value='DiscoveryGlpi'>Glpi "._('scan')."</option>";
+					} 
+					if ($settings['enableNEDI'] == 1 && $settings['enableGLPI'] == 1) {
+						print "<option selected=\"selected\" value='DiscoveryNediGlpi'>NediGlpi "._('scan')."</option>";
+					} ?>
+					
 <!-- 		    		<option value="DiscoveryNmap">NMap <?php print _('scan');?></option> -->
 	    		</optgroup>
     			<!-- Status update scans -->
 	    		<optgroup label="<?php print _('Status update scans');?>">
 		    		<option value="UpdatePing">Ping <?php print _('scan');?></option>
-<!-- 		    		<option value="UpdateNmap">NMap <?php print _('scan');?></option> -->
+					<?php if ($settings['enableNEDI'] == 1) {
+						print "<option value='UpdateNedi'>NeDi "._('scan')."</option>";
+					}
+					if ($settings['enableGLPI'] == 1) {
+						print "<option value='UpdateGlpi'>Glpi "._('scan')."</option>";
+					} ?>
+					<!-- <option value="UpdateNmap">NMap <?php print _('scan');?></option> -->
+				</optgroup>
+    			<!-- Status update scans -->
+	    		<optgroup label="<?php print _('Scheduled task');?>">
+					<option value="NotifyRequest">Notify Request Inactive</option>
+					<option value="DeleteReserved">Delete Reserved</option>
+					<option value="DeleteInactive">Delete Inactive</option>
+		    		
 	    		</optgroup>
 
 			</select>

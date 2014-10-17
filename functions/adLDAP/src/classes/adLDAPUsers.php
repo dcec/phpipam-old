@@ -226,9 +226,9 @@ class adLDAPUsers {
              $filter = "userPrincipalName=" . $username;
         }
         else {
-             $filter = "samaccountname=" . $username;
+             $filter = "cn=" . $username;
         }
-        $filter = "(&(objectCategory=person)({$filter}))";
+        $filter = "(&(objectClass=person)({$filter}))";
         if ($fields === NULL) { 
             $fields = array("samaccountname","mail","memberof","department","displayname","telephonenumber","primarygroupid","objectsid"); 
         }

@@ -118,10 +118,11 @@ if(sizeof($devices) == 0) {
 	print "	<td colspan='$colspan'><div class='alert alert-info'>"._('No devices configured')."!</div></td>";
 	print "</tr>";
 } else {
+	$cnt = countIPaddresses();
 	foreach ($devices as $device) {
 	
 	//count items
-	$cnt = countIPaddressesBySwitchId($device['id']);
+	#$cnt = countIPaddressesBySwitchId($device['id']);
 	
 	//print details
 	print '<tr>'. "\n";
@@ -129,10 +130,10 @@ if(sizeof($devices) == 0) {
 	print "	<td>". $device['hostname'] .'</td>'. "\n";
 	print "	<td>". $device['ip_addr'] .'</td>'. "\n";
 	print '	<td class="description">'. $device['description'] .'</td>'. "\n";
-	print '	<td><strong>'. $cnt .'</strong> '._('Hosts').'</td>'. "\n";
+	print '	<td><strong>'. $cnt[$device['id']] .'</strong> '._('Hosts').'</td>'. "\n";
 	print '	<td class="hidden-sm">'. $device['tname'] .'</td>'. "\n";
 	print '	<td class="hidden-sm hidden-xs">'. $device['vendor'] .'</td>'. "\n";
-	print '	<td class="hidden-sm hidden-xs">'. $$device['model'] .'</td>'. "\n";
+	print '	<td class="hidden-sm hidden-xs">'. $device['model'] .'</td>'. "\n";
 	print '	<td class="hidden-sm hidden-xs">'. $device['version'] .'</td>'. "\n";
 	
 	//custom

@@ -194,7 +194,7 @@ if(sizeof($result) > 0) {
 					$line['switch'] = $switch['hostname'];
 				}
 				
-				print ' <td class="hidden-sm hidden-xs">'. $line['switch']  .'</td>' . "\n"; 
+				print ' <td class="hidden-sm hidden-xs"><a href="tools/devices/hosts/'.$switch['id'].'/">'. $line['switch']  .'</a></td>' . "\n"; 
 			}
 			# port
 			if(in_array('port', $setFields)) 										{ print ' <td>'. $line['port']  .'</td>' . "\n"; }

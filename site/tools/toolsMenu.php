@@ -68,7 +68,15 @@ $setFields = explode(";", $setFieldsTemp);
 		<li class="list-group-item <?php if($_REQUEST['toolsId'] == "vrf") print "active"; ?>">
 			<a href="tools/vrf/"><i class="fa fa-angle-right pull-right icon-gray"></i> <?php print _('VRF'); ?></a>
 		</li>  
+		<?php } ?> 
+		<?php # if site enabled
+	    if($settings['enableSite'] == 1) { ?>
+		<li class="list-group-item <?php if($_REQUEST['toolsId'] == "site") print "active"; ?>">
+			<a href="tools/site/"><i class="fa fa-angle-right pull-right icon-gray"></i> <?php print _('Site'); ?></a>
+		</li>  
+		<?php } ?> 
 	</ul>  
+       
     <?php } ?>    
 </div>
 

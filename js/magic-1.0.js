@@ -190,6 +190,19 @@ $(document).on('click', '#sortablePopup li a.widget-add', function() {
 
 /* @subnets list ----------  */
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* leftmenu toggle submenus */
 // default hide
 $('ul.submenu.submenu-close').hide();
@@ -422,9 +435,11 @@ $(document).on('click','#subnetScanSubmit', function() {
 	var pingType = $('select[name=scanType]').find(":selected").val();
 	if($('input[name=debug]').is(':checked'))	{ var debug = 1; }
 	else										{ var debug = 0; }
-	var port     = $('input[name=telnetports]').val();
+	//var port     = $('input[name=telnetports]').val();
+	var scanSubnet=$('input[name=scanSubnet]').val();
+	var scanMask=$('input[name=scanMask]').val();
 	$('#alert-scan').slideUp('fast');
-	$.post('site/ipaddr/scan/subnetScan'+pingType+".php", {subnetId:subnetId, pingType:pingType, debug:debug, port:port}, function(data) {
+	$.post('site/ipaddr/scan/subnetScan'+pingType+".php", {subnetId:subnetId, pingType:pingType, scanSubnet:scanSubnet, scanMask:scanMask, debug:debug}, function(data) {
         $('#subnetScanResult').html(data);
 		hideSpinner();
     }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
@@ -655,16 +670,8 @@ $('form#ipCalc input.reset').click(function () {
 $('.searchSubmit').click(function () {
     showSpinner();
     var ip = $('.searchInput').val();
-
-    //lets try to detect IEto set location
-    var ua = window.navigator.userAgent;
-    var msie = ua.indexOf("MSIE ");
-
-    //IE
-    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) 	{ var base = $('.iebase').html(); } 
-    else 																{ var base = ""; } 
-    //go to search page
-	window.location = base + "tools/search/" + ip;
+    //update search page
+    window.location = "tools/search/" + ip;
     return false;
 });
 //submit form - topmenu
@@ -1363,6 +1370,30 @@ $(document).on("click", ".editSubnetPermissionsSubmit", function() {
 	return false;
 });
 
+//change site permissions
+$('.showSitePerm').click(function() {
+	showSpinner();
+	var siteId  = $(this).attr('data-siteId');
+	
+	$.post("site/admin/manageSiteShowPermissions.php", {siteId:siteId}, function(data) {
+        $('div.popup_w500').html(data);
+        showPopup('popup_w500');
+		hideSpinner();
+    }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+	return false;
+});
+//submit permission change
+$(document).on("click", ".editSitePermissionsSubmit", function() {
+	showSpinner();
+	var perms = $('form#editSitePermissions').serialize();
+	$.post('site/admin/manageSitePermissionsSubmit.php', perms, function(data) {
+		$('.editSitePermissionsResult').html(data);
+        //reload after 2 seconds if succeeded!
+        if(data.search("alert-danger") == -1)   { setTimeout(function (){window.location.reload();}, 1500); }
+        else                             { hideSpinner(); hideSpinner(); }
+    }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+	return false;
+});
 
 /*    Add subnet from IPCalc result
 *********************************/
@@ -1420,6 +1451,23 @@ $('.edit_subnet, button.edit_subnet, button#add_subnet').click(function () {
     return false;
 });
 
+/*    Edit subnet from ip address list
+************************************/
+$('.edit_subnet, button.edit_subnet, button#scan_subnet').click(function () {
+    var subnetId  = $(this).attr('data-subnetId');
+    var sectionId = $(this).attr('data-sectionId');
+    var action    = $(this).attr('data-action');
+
+    //format posted values
+    var postdata     = "sectionId="+sectionId+"&subnetId="+subnetId+"&action="+action+"&location=IPaddresses";
+    //load add Subnet form / popup
+    $.post('site/ipaddr/scan/subnetAdd.php', postdata , function(data) {
+        $('div.popup_w700').html(data);
+        showPopup('popup_w700');
+        hideSpinner();
+    }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+    return false;
+});
 
 /* Show add new VLAN on subnet add/edit on-thy-fly
 ***************************************************/
@@ -1461,7 +1509,46 @@ $(document).on("click", ".vlanManagementEditFromSubnetButton", function() {
     return false;    
 });
 
+/* Show add new SITE on subnet add/edit on-thy-fly
+***************************************************/
+$(document).on("change", "select[name=masterSiteId]", function() {
+    var siteId    = $(this).val();
+    if(siteId == 'Add') {
+        showSpinner();            
+        $.post('site/admin/manageSiteEdit.php', {action:"add", fromSubnet:"true"}, function(data) {
+            $('div.popup_w500').html(data);
+            showPopup('popup_w500');
+            $('.popup_w700').css("z-index", "99");        //set behind popup
+            hideSpinner();
+		}).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+    }
+    return false;    
+});
 
+//    Submit new SITE on the fly
+$(document).on("click", ".siteManagementEditFromSubnetButton", function() {
+    showSpinner();
+    //get new site details
+    var postData = $('form#siteManagementEditFromSubnet').serialize();
+	//add to save script
+    $.post('site/admin/manageSiteEditResult.php', postData, function(data) {
+        $('div.siteManagementEditFromSubnetResult').html(data).show();
+        // ok
+        if(data.search("alert-danger") == -1) {
+            var siteId	  = $('#siteidforonthefly').html();
+            $.post('site/admin/manageSubnetEditPrintSiteDropdown.php', {siteId:siteId} , function(data) {
+                $('.editSubnetDetails td#siteDropdown').html(data);
+                //bring to front
+                $('.popup_w700').delay(1000).css("z-index", "101");        //bring to front
+                hideSpinner();
+			}).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+            //hide popup after 1 second
+            setTimeout(function (){hidePopup('popup_w400'); parameter = null;}, 1000);
+        }
+        else                      { hideSpinner(); }
+    });
+    return false;    
+});
 
 
 
@@ -1598,6 +1685,55 @@ $(document).on("click", "#editVLANsubmit", function() {
     return false;
 });
 
+/* SITE
+********************************/
+//load edit form
+$('.editSITE').click(function() {
+    showSpinner();
+    var siteId   = $(this).attr('data-siteid');
+    var action   = $(this).attr('data-action');
+    $.post('site/admin/manageSiteEdit.php', {siteId:siteId, action:action}, function(data) {
+        $('div.popup_w500').html(data);
+        showPopup('popup_w500');
+        hideSpinner();
+    }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+    return false;    
+});
+$('.editSITEtool').click(function() {
+    showSpinner();
+    var siteId   = $(this).attr('data-siteid');
+    var action   = $(this).attr('data-action');
+    $.post('site/tools/manageSiteEdit.php', {siteId:siteId, action:action}, function(data) {
+        $('div.popup_w500').html(data);
+        showPopup('popup_w500');
+        hideSpinner();
+    }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+    return false;    
+});
+//result
+$(document).on("click", "#editSITEsubmit", function() {
+    showSpinner();
+    var sitedata = $('form#siteManagementEdit').serialize();
+    $.post('site/admin/manageSiteEditResult.php', sitedata, function(data) {
+        $('div.siteManagementEditResult').html(data).slideDown('fast');
+        //reload after 2 seconds if succeeded!
+        if(data.search("alert-danger") == -1)     { setTimeout(function (){window.location.reload();}, 1500); }
+        else                               { hideSpinner(); }
+    }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+    return false;
+});
+
+$(document).on("click", "#editSITEsubmittool", function() {
+    showSpinner();
+    var sitedata = $('form#siteManagementEdit').serialize();
+    $.post('site/tool/manageSiteEditResult.php', sitedata, function(data) {
+        $('div.siteManagementEditResult').html(data).slideDown('fast');
+        //reload after 2 seconds if succeeded!
+        if(data.search("alert-danger") == -1)     { setTimeout(function (){window.location.reload();}, 1500); }
+        else                               { hideSpinner(); }
+    }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+    return false;
+});
 
 /*    VRF
 *********/

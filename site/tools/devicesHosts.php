@@ -44,6 +44,9 @@ print "<table id='switchMainTable' class='devices table table-striped table-top 
 	print "		<h4> $device[hostname] $device[ip_addr]</h4>";
 	print "	</th>";
 	print "</tr>";
+	if(!empty($device['tname'])){print "<tr><th colspan='7' style='border-top: 0px;border-bottom:none'>Type: $device[tname]</th></tr>";}
+	if(!empty($device['model'])){print "<tr><th colspan='7' style='border-top: 0px;border-bottom:none'>Model: $device[model]</th></tr>";}
+	if(!empty($device['description'])){print "<tr><th colspan='7' style='border-top: 0px;border-bottom:none'>Description: $device[description]</th></tr>";}
 	print "</tbody>";
 	
 	# collapsed div with details
@@ -103,5 +106,7 @@ print "<table id='switchMainTable' class='devices table table-striped table-top 
 	print "</tbody>";
 
 print "</table>";			# end major table
-
+#print "<pre>";
+#print_r($device);
+#print "</pre>";
 ?>
