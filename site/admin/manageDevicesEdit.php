@@ -108,6 +108,15 @@ $(document).ready(function(){
 		</td>
 	</tr>
 
+	<!-- site -->
+    <tr>
+        <td class="middle"><?php print _('Site'); ?></td>
+        <td id="siteDropdown"> 
+			<?php include('manageSubnetEditPrintSiteDropdown.php'); ?>
+         </td>
+        <td class="info2"><?php print _('Select SITE'); ?></td>
+    </tr>
+	
 	<!-- Custom -->
 	<?php
 	if(sizeof($custom) > 0) {

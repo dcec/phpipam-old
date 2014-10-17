@@ -89,6 +89,9 @@ $settings = getAllSettings();
 			<a href="administration/manageVRF/"><i class="fa fa-angle-right pull-right"></i> <?php print _('VRF management'); ?></a>
 		</li>    
 	    <?php } ?>
+		<li class="list-group-item <?php if($_REQUEST['adminId'] == "manageSites") print "active"; ?>">
+			<a href="administration/manageSites/"><i class="fa fa-angle-right pull-right"></i> <?php print _('SITE management'); ?></a>
+		</li>
 	    <li class="list-group-item <?php if($_REQUEST['adminId'] == "ripeImport") print "active"; ?>">
 			<a href="administration/ripeImport/"><i class="fa fa-angle-right pull-right"></i> <?php print _('RIPE import'); ?></a>
 		</li>    

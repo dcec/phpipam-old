@@ -31,7 +31,6 @@ foreach($slaves as $s) {
 		$subnets[] = $s;
 	}
 }
-
 /* first print belonging folders */
 if(sizeof($folders)>0) 
 {
@@ -59,6 +58,7 @@ if(sizeof($subnets)>0) {
 	print "	<th class='small'>"._('VLAN')."</th>";
 	print "	<th class='small description'>"._('Subnet description')."</th>";
 	print "	<th>"._('Subnet')."</th>";
+	print "	<th>"._('Site')."</th>";
 	print "	<th class='small hidden-xs hidden-sm'>"._('Used')."</th>";
 	print "	<th class='small hidden-xs hidden-sm'>% "._('Free')."</th>";
 	print "	<th class='small hidden-xs hidden-sm'>"._('Requests')."</th>";
@@ -87,6 +87,18 @@ if(sizeof($subnets)>0) {
 	    print "	<td class='small'>$slave[VLAN]</td>";
 	    print "	<td class='small description'><a href='subnets/$section[id]/$slave[id]/'>$slave[description]</a></td>";
 	    print "	<td><a href='subnets/$section[id]/$slave[id]/'>".transform2long($slave['subnet'])."/$slave[mask]</a></td>";
+		
+		# reformat empty SITE
+		#if(empty($slave['SITE']) || $slave['SITE'] == 0 || strlen($slave['SITE']) == 0) { $slave['SITE'] = "/"; }
+		
+		# get VLAN details
+		if ($slave['siteId'] > 0){
+			$slave['SITE'] = subnetGetSITEdetailsById($slave['siteId']);
+			if ($slave['SITE']['masterSiteId']>0) {$master = subnetGetSITEdetailsById($slave['SITE']['masterSiteId']);$masterstr = " (".$master['name'].")";}
+			$slave['SITE'] = $slave['SITE']['name'].$masterstr;
+		}else{$slave['SITE'] = "/";}
+		
+		print "	<td class='small'>$slave[SITE]</td>";
 	    
 	    # count IP addresses
 		$hasSlaves = getAllSlaveSubnetsBySubnetId ($slave['id']); 

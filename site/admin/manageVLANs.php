@@ -34,6 +34,8 @@ else {
 		<th><?php print _('Name'); ?></th>	
 		<th><?php print _('Number'); ?></th>
 		<th><?php print _('Description'); ?></th>
+		<th><?php print _('Device'); ?></th>
+		<th><?php print _('Site'); ?></th>
 		<?php
 		if(sizeof($custom) > 0) {
 			foreach($custom as $field) {
@@ -54,7 +56,10 @@ else {
 	print '	<td class="name">'. $vlan['name'] .'</td>'. "\n";
 	print '	<td class="number">'. $vlan['number'] .'</td>'. "\n";
 	print '	<td class="description">'. $vlan['description'] .'</td>'. "\n";	
-	
+	$device = getDeviceDetailsById($vlan['switch']);
+	print '	<td class="device">'. $device['hostname'] .'</td>'. "\n";
+	$site = subnetGetSITEdetailsById($device['siteId']);
+	print '	<td class="site">'. $site['name'] .' ('. $site['company'] .')</td>'. "\n";
 	if(sizeof($custom) > 0) {
 		foreach($custom as $field) {
 

@@ -41,6 +41,7 @@ else {
 	print '	<th>'._('Model').'</th>';
 	print '	<th>'._('SW version').'</th>';
 	print '	<th>'._('Description').'</th>';
+	print '	<th>'._('Site').'</th>';
 	print '	<th><i class="icon-gray icon-info-sign" rel="tooltip" title="'._('Shows in which sections device will be visible for selection').'"></i> '._('Sections').'</th>';
 	if(sizeof($custom) > 0) {
 		foreach($custom as $field) {
@@ -51,6 +52,7 @@ else {
 	print '</tr>';
 
 	foreach ($devices as $device) {
+	$site = subnetGetSITEdetailsById($device['siteId']);
 	
 	//print details
 	print '<tr>'. "\n";
@@ -62,6 +64,7 @@ else {
 	print '	<td>'. $device['model'] .'</td>'. "\n";
 	print '	<td>'. $device['version'] .'</td>'. "\n";
 	print '	<td class="description">'. $device['description'] .'</td>'. "\n";
+	print '	<td>'. $site['name'] .' ('. $site['company'] .')</td>'. "\n";
 	
 	//sections
 	print '	<td class="sections">';

@@ -25,6 +25,9 @@ if(sizeof($SubnetDetails) == 0) { die('<div class="alert alert-danger">'._('Subn
 # reset VLAN number!
 $SubnetDetails['VLAN'] = subnetGetVLANdetailsById($SubnetDetails['vlanId']);
 
+# reset SITE number!
+$SubnetDetails['SITE'] = subnetGetSITEdetailsById($SubnetDetails['siteId']);
+
 # get all site settings
 $settings = getAllSettings();
 
@@ -98,6 +101,18 @@ if($permission == "0")	{ die("<div class='alert alert-danger'>"._('You do not ha
 			
 			if(!empty($SubnetDetails['VLAN']['name'])) 		  { print ' - '.$SubnetDetails['VLAN']['name']; }									# Print name if provided
 			if(!empty($SubnetDetails['VLAN']['description'])) { print ' ['. $SubnetDetails['VLAN']['description'] .']'; }						# Print description if provided
+			?>
+			</td>
+		</tr>
+		<tr>
+			<th><?php print _('SITE'); ?></th>
+			<td>
+			<?php 
+			if(empty($SubnetDetails['SITE']['name'])) { $SubnetDetails['SITE']['name'] = "/"; }	# Display fix for emprt SITE
+			print $SubnetDetails['SITE']['name'];
+			
+			if(!empty($SubnetDetails['SITE']['company'])) 		  { print ' - '.$SubnetDetails['SITE']['company']; }									# Print name if provided
+			if(!empty($SubnetDetails['SITE']['location'])) { print ' ['. $SubnetDetails['SITE']['location'] .']'; }						# Print description if provided
 			?>
 			</td>
 		</tr>
@@ -217,7 +232,7 @@ if($permission == "0")	{ die("<div class='alert alert-danger'>"._('You do not ha
 			print "<a class='btn btn-xs btn-default disabled' 		href='' data-container='body' rel='tooltip' title='"._('Manage subnet permissions')."'>																										<i class='fa fa-tasks'></i></a>";			
 
 			// add nested subnet
-			if($permissionsSection == 3) {
+			if($permissionsSection == 3 || $permission == 3) {
 			print "<a class='edit_subnet btn btn-xs btn-default '	href='' data-container='body' rel='tooltip' title='"._('Add new nested subnet')."' 		data-subnetId='$SubnetDetails[id]' data-action='add' data-id='' data-sectionId='$SubnetDetails[sectionId]'> <i class='fa fa-plus-circle'></i></a> ";
 			} else {
 			print "<a class='btn btn-xs btn-default disabled' 		href=''> 																																															<i class='fa fa-plus-circle'></i></a> ";			
@@ -243,12 +258,14 @@ if($permission == "0")	{ die("<div class='alert alert-danger'>"._('You do not ha
 		print "<div class='btn-group'>";
 
 			// if full prevent new
+			if($permission == 3){
 			if(reformatNumber ($CalculateSubnetDetails['freehosts']) == "0" || !$sp['addip']) 
 			print "<a class='btn btn-xs btn-default btn-success disabled' 	href='' data-container='body' rel='tooltip' title='"._('Add new IP address')."'>																					<i class='fa fa-plus'></i></a> ";
 			else 
 			print "<a class='modIPaddr btn btn-xs btn-default btn-success' 	href='' data-container='body' rel='tooltip' title='"._('Add new IP address')."' data-subnetId='$SubnetDetails[id]' data-action='add' data-id=''>					<i class='fa fa-plus'></i></a> ";	
+			}
 			//requests
-			if($SubnetDetails['allowRequests'] == 1 && $permission == 1)  {
+			if($SubnetDetails['allowRequests'] == 1 && $permission < 3)  {
 			print "<a class='request_ipaddress btn btn-xs btn-default btn-success' 	href='' data-container='body' rel='tooltip' title='"._('Request new IP address')."' data-subnetId='$SubnetDetails[id]'>										<i class='fa fa-plus-circle'>  </i></a>";				
 			}
 			// subnet scan
@@ -261,7 +278,7 @@ if($permission == "0")	{ die("<div class='alert alert-danger'>"._('You do not ha
 		# export / import
 		print "<div class='btn-group'>";
 			//import
-			if($sp['import']) 
+			if($sp['import'] && $permission == 3) 
 			print "<a class='csvImport btn btn-xs btn-default'  href='' data-container='body' rel='tooltip' title='"._('Import IP addresses')."' data-subnetId='$SubnetDetails[id]'>		<i class='fa fa-upload'></i></a>";			
 			else
 			print "<a class='btn btn-xs btn-default disabled'  	href='' data-container='body' rel='tooltip' title='"._('Import IP addresses')."'>											<i class='fa fa-upload'></i></a>";			

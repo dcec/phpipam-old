@@ -134,7 +134,7 @@ if($permission == "0")	{ die("<div class='alert alert-danger'>"._('You do not ha
 		print "<a class='btn btn-xs btn-default disabled' 		href='' rel='tooltip' data-container='body' title='"._('Manage folder permissions')."'>																										<i class='fa fa-tasks'></i></a>";			# edit subnet
 
 		// add nested subnet
-		if($permissionsSection == 3) {
+		if($permissionsSection == 3 || $permission == 3) {
 		print "<a class='edit_subnet btn btn-xs btn-default '	href='' data-container='body' rel='tooltip' title='"._('Add new nested subnet')."' 		data-subnetId='$SubnetDetails[id]' data-action='add' data-id='' data-sectionId='$SubnetDetails[sectionId]'> <i class='fa fa-plus-circle'></i></a> ";
 		print "<a class='add_folder btn btn-xs btn-default '	href='' rel='tooltip' data-container='body' title='"._('Add new nested folder')."' 		data-subnetId='$SubnetDetails[id]' data-action='add' data-id='' data-sectionId='$SubnetDetails[sectionId]'> <i class='fa fa-folder-close-o'></i></a> ";		# add new child subnet
 		} else {
