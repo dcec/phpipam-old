@@ -99,6 +99,18 @@ $section = getSectionDetailsById ($_POST['sectionId']);
 			</td>
 		</tr>
 
+		<!-- Show Sites -->
+		<tr>
+			<td><?php print _('Show Sites'); ?></td>
+			<td colspan="2">
+				<select name="showSITE" class="input-small form-control input-sm input-w-auto  pull-left" <?php if($_POST['action']=="delete") print 'disabled="disabled"'; ?>>
+					<option value="1"><?php print _('Yes'); ?></option>
+					<option value="0" <?php if($section['showSITE'] == "0") print "selected='selected'"; ?>><?php print _('No'); ?></option>
+				</select>
+				<span class="help-inline info2"><?php print _('Show list of Sites and belonging subnets in subnet list'); ?></span>
+			</td>
+		</tr>
+	
 		<!-- Show VRFs -->
 		<tr>
 			<td><?php print _('Show VRFs'); ?></td>

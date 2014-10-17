@@ -34,7 +34,9 @@ isUserAuthenticated(false);
 			/* set structure */
 			$printVLAN = $vlan['number'];
 			
-			if(!empty($vlan['name'])) { $printVLAN .= " ($vlan[name])"; }
+			$device = getDeviceDetailsById($vlan['switch']);
+			
+			if(!empty($vlan['name'])) { $printVLAN .= " ($vlan[name] on $device[hostname])"; }
 			
 			/* selected? */
 			if($subnetDataOld['vlanId'] == $vlan['vlanId']) { print '<option value="'. $vlan['vlanId'] .'" selected>'. $printVLAN .'</option>'. "\n"; }

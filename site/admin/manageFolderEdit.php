@@ -13,7 +13,7 @@ isUserAuthenticated(false);
 /* verify that user has permissions if add */
 if($_POST['action'] == "add") {
 	$sectionPerm = checkSectionPermission ($_POST['sectionId']);
-	if($sectionPerm != 3) {
+	if($sectionPerm != 3 && $subnetPerm != 3) {
 		die("<div class='pHeader'>"._('Error')."</div><div class='pContent'><div class='alert alert-danger'>"._('You do not have permissions to add new folder in this section')."!</div></div><div class='pFooter'><button class='btn btn-sm btn-default hidePopups'>"._('Close')."</button>");
 	}
 }
@@ -88,8 +88,10 @@ else															{ $readonly = false; }
             
             	foreach($sections as $section) {
             		/* selected? */
+					if (checkSectionPermission ($section['id']) > 0){
             		if($_POST['sectionId'] == $section['id']) { print '<option value="'. $section['id'] .'" selected>'. $section['name'] .'</option>'. "\n"; }
             		else 									  { print '<option value="'. $section['id'] .'">'. $section['name'] .'</option>'. "\n"; }
+					}
             	}
             ?>
             </select>
@@ -126,16 +128,96 @@ else															{ $readonly = false; }
 	    foreach($customSubnetFields as $field) {
 	    	# replace spaces
 	    	$field['nameNew'] = str_replace(" ", "___", $field['name']);
-	    	# retain newlines
-	    	$subnetDataOld[$field['name']] = str_replace("\n", "\\n", $subnetDataOld[$field['name']]);
+			# required
+			if($field['Null']=="NO")	{ $required = "*"; }
+			else						{ $required = ""; }
+			
+			print '<tr>'. "\n";
+			print '	<td>'. $field['name'] .' '.$required.'</td>'. "\n";
+			print '	<td>'. "\n";
+			
+			//set type
+			if(substr($field['type'], 0,3) == "set") {
+				//parse values
+				if($field['name'] == 'Country'){
+					$tmp=array("Afghanistan","Albania","Algeria","Andorra","Angola","Antigua & Deps","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Rep","Chad","Chile","China","Colombia","Comoros","Congo","Congo Democratic Rep","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland Republic","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Korea North","Korea South","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar Burma","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russian Federation","Rwanda","St Kitts & Nevis","St Lucia","Saint Vincent & the Grenadines","Samoa","San Marino","Sao Tome & Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe");
+				}else{
+					$tmp = explode(",", str_replace(array("set(", ")", "'"), "", $field['type']));
+				}
+				//null
+				if($field['Null']!="NO") { array_unshift($tmp, ""); }
+								
+				print "<select name='$field[nameNew]' class='form-control input-sm input-w-auto' rel='tooltip' data-placement='right' title='$field[Comment]'>";
+				foreach($tmp as $v) {
+					if($v==$site[$field['name']])	{ print "<option value='$v' selected='selected'>$v</option>"; }
+					else								{ print "<option value='$v'>$v</option>"; }
+				}
+				print "</select>";
+			}
+			//date and time picker
+			elseif($field['type'] == "date" || $field['type'] == "datetime") {
+				// just for first
+				if($timeP==0) {
+					print '<link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap-datetimepicker.min.css">';
+					print '<script type="text/javascript" src="js/bootstrap-datetimepicker.min.js"></script>';
+					print '<script type="text/javascript">';
+					print '$(document).ready(function() {';
+					//date only
+					print '	$(".datepicker").datetimepicker( {pickDate: true, pickTime: false, pickSeconds: false });';
+					//date + time
+					print '	$(".datetimepicker").datetimepicker( { pickDate: true, pickTime: true } );';
+
+					print '})';
+					print '</script>';
+				}
+				$timeP++;
+				
+				//set size
+				if($field['type'] == "date")	{ $size = 10; $class='datepicker';		$format = "yyyy-MM-dd"; }
+				else							{ $size = 19; $class='datetimepicker';	$format = "yyyy-MM-dd"; }
+								
+				//field
+				if(!isset($site[$field['name']]))	{ print ' <input type="text" class="'.$class.' form-control input-sm input-w-auto" data-format="'.$format.'" name="'. $field['nameNew'] .'" maxlength="'.$size.'" '.$delete.' rel="tooltip" data-placement="right" title="'.$field['Comment'].'">'. "\n"; }
+				else								{ print ' <input type="text" class="'.$class.' form-control input-sm input-w-auto" data-format="'.$format.'" name="'. $field['nameNew'] .'" maxlength="'.$size.'" value="'. $site[$field['name']]. '" '.$delete.' rel="tooltip" data-placement="right" title="'.$field['Comment'].'">'. "\n"; } 
+			}	
+			//boolean
+			elseif($field['type'] == "tinyint(1)") {
+				print "<select name='$field[nameNew]' class='form-control input-sm input-w-auto' rel='tooltip' data-placement='right' title='$field[Comment]'>";
+				$tmp = array(0=>"No",1=>"Yes");
+				//null
+				if($field['Null']!="NO") { $tmp[2] = ""; }
+				
+				foreach($tmp as $k=>$v) {
+					if(strlen($site[$field['name']])==0 && $k==2)	{ print "<option value='$k' selected='selected'>"._($v)."</option>"; }
+					elseif($k==$site[$field['name']])				{ print "<option value='$k' selected='selected'>"._($v)."</option>"; }
+					else												{ print "<option value='$k'>"._($v)."</option>"; }
+				}
+				print "</select>";
+			}	
+			//text
+			elseif($field['type'] == "text") {
+				print ' <textarea class="form-control input-sm" name="'. $field['nameNew'] .'" placeholder="'. $field['name'] .'" '.$delete.' rowspan=3 rel="tooltip" data-placement="right" title="'.$field['Comment'].'">'. $site[$field['name']]. '</textarea>'. "\n";
+			}	
+			//default - input field
+			else {
+				print ' <input type="text" class="ip_addr form-control input-sm" name="'. $field['nameNew'] .'" placeholder="'. $field['name'] .'" value="'. $site[$field['name']]. '" size="30" '.$delete.' rel="tooltip" data-placement="right" title="'.$field['Comment'].'">'. "\n"; 
+			}
+						
+			print '	</td>'. "\n";
+			print '</tr>'. "\n";		
+
+
+		}
+		# retain newlines
+	    #	$subnetDataOld[$field['name']] = str_replace("\n", "\\n", $subnetDataOld[$field['name']]);
 	    	
-		    print "<tr>";
-		    print "	<td class='middle'>$field[name]</td>";
-		    print "	<td colspan='2'>";
-		    print "	<input type='text' class='form-control input-sm' id='field-$field[nameNew]' name='$field[nameNew]' value='".$subnetDataOld[$field['name']]."' placeholder='".$subnetDataOld[$field['name']]."'>";
-		    print " </td>";
-		    print "</tr>";
-	    }
+		#    print "<tr>";
+		#    print "	<td class='middle'>$field[name]</td>";
+		#    print "	<td colspan='2'>";
+		#    print "	<input type='text' class='form-control input-sm' id='field-$field[nameNew]' name='$field[nameNew]' value='".$subnetDataOld[$field['name']]."' placeholder='".$subnetDataOld[$field['name']]."'>";
+		#    print " </td>";
+		#    print "</tr>";
+	   # }
     }
     
     # divider

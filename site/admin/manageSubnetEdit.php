@@ -13,7 +13,8 @@ isUserAuthenticated(false);
 /* verify that user has permissions if add */
 if($_POST['action'] == "add") {
 	$sectionPerm = checkSectionPermission ($_POST['sectionId']);
-	if($sectionPerm != 3) {
+	$subnetPerm = checkSubnetPermission ($_POST['subnetId']);
+	if($sectionPerm != 3 && $subnetPerm != 3) {
 		die("<div class='pHeader'>"._('Error')."</div><div class='pContent'><div class='alert alert-danger'>"._('You do not have permissions to add new subnet in this section')."!</div></div><div class='pFooter'><button class='btn btn-sm btn-default hidePopups'>"._('Close')."</button>");
 	}
 }
@@ -50,6 +51,7 @@ else {
     	$tempData = getSubnetDetailsById ($_POST['subnetId']);	
     	$subnetDataOld['masterSubnetId'] = $tempData['id'];			// same master subnet ID for nested
     	$subnetDataOld['vlanId'] 		 = $tempData['vlanId'];		// same default vlan for nested
+		$subnetDataOld['siteId'] 		 = $tempData['siteId'];		// same default vlan for nested
     	$subnetDataOld['vrfId'] 		 = $tempData['vrfId'];		// same default vrf for nested
 	}
 	$sectionName = getSectionDetailsById ($_POST['sectionId']);
@@ -68,6 +70,10 @@ if(isset($_POST['vlanId'])) {
 	$subnetDataOld['vlanId'] = $_POST['vlanId'];
 }
 
+/* site result on the fly */
+if(isset($_POST['siteId'])) {
+	$subnetDataOld['siteId'] = $_POST['siteId'];
+}
 # set readonly flag
 if($_POST['action'] == "edit" || $_POST['action'] == "delete")	{ $readonly = true; }
 else															{ $readonly = false; }
@@ -122,8 +128,11 @@ else															{ $readonly = false; }
             
             	foreach($sections as $section) {
             		/* selected? */
+					$permission = checkSectionPermission ($section['id']);
+					if ( $permission > 0){
             		if($_POST['sectionId'] == $section['id']) { print '<option value="'. $section['id'] .'" selected>'. $section['name'] .'</option>'. "\n"; }
             		else 									  { print '<option value="'. $section['id'] .'">'. $section['name'] .'</option>'. "\n"; }
+					}
             	}
             ?>
             </select>
@@ -143,6 +152,16 @@ else															{ $readonly = false; }
         <td class="info2"><?php print _('Select VLAN'); ?></td>
     </tr>
 
+	<!-- site -->
+    <tr>
+        <td class="middle"><?php print _('SITE'); ?></td>
+        <td id="siteDropdown"> 
+			<!-- <?php #include('manageSubnetEditPrintSiteDropdown.php'); ?> -->
+			<?php printDropdownMenuBySite($subnetDataOld['siteId']); ?>
+         </td>
+        <td class="info2"><?php print _('Select SITE'); ?></td>
+    </tr>
+	
     <!-- Master subnet -->
     <tr>
         <td><?php print _('Master Subnet'); ?></td>
@@ -153,6 +172,16 @@ else															{ $readonly = false; }
     </tr>
 
     <?php
+																					{ $inherits = ""; }
+	$inherits = "checked";
+		# inerit permission
+		print '<tr>' . "\n";
+        print '	<td>'._('Inherits permissions').'</td>' . "\n";
+        print '	<td>' . "\n";
+        print '		<input type="checkbox" name="inheritsPermissions" value="1" '.$inherits.'>'. "\n";
+        print '	</td>' . "\n";
+        print '	<td class="info2">'._('Inherits permissions from master subnet').'</td>' . "\n";
+		
     /* get all site settings */
 	$settings = getAllSettings();
 	$VRFs 	  = getAllVRFs();
@@ -380,7 +409,47 @@ else															{ $readonly = false; }
     }
     ?>
 
+<?php
+	$subnets1 = fetchFolders ($_POST['sectionId']);
+		
+	$rootId = 0;	
+	foreach ( $subnets1 as $item )
+			$children1[$item['masterSubnetId']][] = $item;
+	$loop = !empty( $children1[$rootId] );
+		
+		# initializing $parent as the root
+	$parent1 = $rootId;
+	$parent_stack1 = array();
+	$allParents1 = getAllParents ($_REQUEST['subnetId']);
 
+	$sites = getAllSITEs();
+	foreach ( $sites as $item )
+			$children[$item['masterSiteId']][$item['siteId']] = $item;
+	$loop = !empty( $children[$rootId] );
+	$parent = $rootId;
+	$parent_stack = array();
+	$allParents = getAllSiteParents ($_REQUEST['subnetId']);
+	
+	#print "<hr>";
+	#print "<pre>";
+	#print_r($subnets1);
+	#print "</pre>";
+	#print "<pre>";
+	#print_r($sites);
+	#print "</pre>";
+	#print "<pre>";
+	#print_r($children);
+	#print "</pre>";
+	#print "<pre>";
+	#print_r($children1);
+	#print "</pre>";
+	#print "<pre>";
+	#print_r($allParents);
+	#print "</pre>";
+	#print "<pre>";
+	#print_r($children);
+	#print "</pre>";
+?>
 </div>
 
 

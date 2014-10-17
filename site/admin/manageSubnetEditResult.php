@@ -13,7 +13,8 @@ isUserAuthenticated(true);
 /* verify that user has permissions if add */
 if($_POST['action'] == "add") {
 	$sectionPerm = checkSectionPermission ($_POST['sectionId']);
-	if($sectionPerm != 3) {
+	$subnetPerm = checkSubnetPermission ($_POST['subnetId']);
+	if($sectionPerm != 3 && $subnetPerm != 3) {
 		die("<div class='alert alert-danger'>"._('You do not have permissions to add new subnet in this section')."!</div>");
 	}
 }
@@ -161,7 +162,7 @@ if(sizeof($myFields) > 0) {
 
 
 /* Set permissions for add! */
-if($_POST['action'] == "add") {
+if($_POST['action'] == "add" || $_POST['inheritsPermissions'] == 1) {
 	# root
 	if($_POST['masterSubnetId'] == 0) {
 		$_POST['permissions'] = $section['permissions'];

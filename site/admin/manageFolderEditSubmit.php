@@ -13,7 +13,8 @@ isUserAuthenticated(true);
 /* verify that user has permissions if add */
 if($_POST['action'] == "add") {
 	$sectionPerm = checkSectionPermission ($_POST['sectionId']);
-	if($sectionPerm != 3) {
+	$subnetPerm = checkSubnetPermission ($_POST['subnetId']);
+	if($sectionPerm != 3 && $subnetPerm != 3) {
 		die("<div class='alert alert alert-danger'>"._('You do not have permissions to add new subnet in this section')."!</div>");
 	}
 }
@@ -70,7 +71,6 @@ if(strlen($_POST['description'])<2 && $_POST['action']!="delete") {
 
 # set folder flag!
 $_POST['isFolder'] = true;
-
 
 # failed
 if (!modifySubnetDetails ($_POST)) 		{ print '<div class="alert alert alert-danger">'._('Error adding new folder').'!</div>'; }

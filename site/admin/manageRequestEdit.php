@@ -28,6 +28,11 @@ $setFields = explode(";", $setFieldsTemp);
 /* get all custom fields */
 $myFields = getCustomFields('ipaddresses');
 $myFieldsSize = sizeof($myFields);
+
+/* check for duplicate entry! needed only in case new IP address is added, otherwise the code is locked! */
+if (checkDuplicate ($request['ip_addr'], $request['subnetId']) || !isset($request['ip_addr'])) {
+	$request['ip_addr'] = transform2long(getFirstAvailableIPAddress ($request['subnetId']));
+}
 ?>
 
 
@@ -90,9 +95,9 @@ $myFieldsSize = sizeof($myFields);
 		<th><?php print _('State'); ?></th>
 		<td>
 			<select name="state" class="form-control input-sm input-w-auto">
-				<option value="1" <?php if(isset($request['state'])) { if ($request['state'] == "1") { print 'selected'; }} ?>><?php print _('Active'); ?></option>
 				<option value="2" <?php if(isset($request['state'])) { if ($request['state'] == "2") { print 'selected'; }} ?>><?php print _('Reserved'); ?></option>
 				<option value="0" <?php if(isset($request['state'])) { if ($request['state'] == "0") { print 'selected'; }} ?>><?php print _('Offline'); ?></option>
+				<option value="1" <?php if(isset($request['state'])) { if ($request['state'] == "1") { print 'selected'; }} ?>><?php print _('Active'); ?></option>
 				<option value="3" <?php if(isset($request['state'])) { if ($request['state'] == "3") { print 'selected'; }} ?>><?php print _('DHCP'); ?></option>
 			</select>
 		</td>

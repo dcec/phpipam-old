@@ -6,6 +6,7 @@
 
 /* verify that user is admin */
 checkAdmin();
+
 ?>
 
 <h4><?php print _('Log files'); ?>:</h4>
@@ -22,8 +23,8 @@ checkAdmin();
 	<button id="downloadLogs" class="btn btn-sm btn-default" style="margin-left:20px"><i class="fa fa-download"></i> <?php print _('Download logs'); ?></button>
 
 	<!-- download log files -->
-	<button id="clearLogs" class="btn btn-sm btn-default"><i class="fa fa-trash-o"></i> <?php print _('Clear logs'); ?></button>
-   
+	<!-- <button id="clearLogs" class="btn btn-sm btn-default"><i class="fa fa-trash-o"></i> <?php print _('Clear logs'); ?></button> -->
+	
 	<span class="pull-right" id="logDirection">
 	<div class="btn-group">
 		<button class="btn btn-xs btn-default" data-direction="prev" name="next" rel="tooltip" data-container='body' title="<?php print _('Previous page'); ?>"><i class="fa fa-angle-left"></i></button>

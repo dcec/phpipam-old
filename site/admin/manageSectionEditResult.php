@@ -36,6 +36,7 @@ $update['id']          		= $_POST['id'];
 $update['strictMode']  		= $_POST['strictMode'];
 $update['subnetOrdering']  	= $_POST['subnetOrdering'];
 $update['showVLAN']  		= $_POST['showVLAN'];
+$update['showSITE']  		= $_POST['showSITE'];
 $update['showVRF']  		= $_POST['showVRF'];
 $update['masterSection']	= $_POST['masterSection'];
 

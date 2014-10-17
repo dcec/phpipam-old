@@ -155,6 +155,39 @@ $langs = getLanguages ();
 	</td>
 </tr>
 
+<!-- Site -->
+<tr>
+	<td class="title"><?php print _('Enable Site support'); ?></td>
+	<td>
+		<input type="checkbox" value="1" name="enableSite" <?php if($settings['enableSite'] == 1) print 'checked'; ?>>
+	</td>
+	<td class="info2">
+		<?php print _('Enable or disable Site module'); ?>
+	</td>
+</tr>
+
+<!-- NEDI -->
+<tr>
+	<td class="title"><?php print _('Enable NEDI support'); ?></td>
+	<td>
+		<input type="checkbox" value="1" name="enableNEDI" <?php if($settings['enableNEDI'] == 1) print 'checked'; ?>>
+	</td>
+	<td class="info2">
+		<?php print _('Enable or disable NEDI import module'); ?>
+	</td>
+</tr>
+
+<!-- GLPI -->
+<tr>
+	<td class="title"><?php print _('Enable GLPI support'); ?></td>
+	<td>
+		<input type="checkbox" value="1" name="enableGLPI" <?php if($settings['enableGLPI'] == 1) print 'checked'; ?>>
+	</td>
+	<td class="info2">
+		<?php print _('Enable or disable GLPI import module'); ?>
+	</td>
+</tr>
+
 <!-- DNS resolving -->
 <tr>
 	<td class="title"><?php print _('Resolve DNS names'); ?></td>

@@ -12,7 +12,9 @@ $settings 		= getAllSettings();
 $mailsettings 	= getAllMailSettings();
 
 # get active user name */
-$mail['sender'] = getActiveUserDetails();
+#$mail['sender'] = getActiveUserDetails();
+if(!getActiveUserDetails()){$mail['sender'] = getUserDetailsByName("Admin");}else{$mail['sender'] = getActiveUserDetails();}
+
 
 # set html header
 $mail['header'] = "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>
@@ -29,12 +31,13 @@ $mail['footer'] = "
 		<tr>
 			<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'>E-mail</font></td>
 			<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'><a href='mailto:$settings[siteAdminMail]' style='color:#08c;'>$settings[siteAdminName]</a></font></td>
-		</tr>
-		<tr>
-			<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'>www</font></td>
-			<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'><a href='$settings[siteURL]' style='color:#08c;'>$settings[siteURL]</a></font></td>
-		</tr>
-		</table>
+		</tr>";
+		#<tr>
+		#	<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'>www</font></td>
+		#	<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'><a href='$settings[siteURL]' style='color:#08c;'>$settings[siteURL]</a></font></td>
+		#</tr>
+
+		$mail['footer'] .= "</table>
 	</td>
 </tr>
 </table>
@@ -49,12 +52,12 @@ $mail['footer2'] = "
 		<tr>
 			<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'>E-mail</font></td>
 			<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'><a href='mailto:$settings[siteAdminMail]' style='color:#08c;'>$settings[siteAdminName]</a></font></td>
-		</tr>
-		<tr>
-			<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'>www</font></td>
-			<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'><a href='$settings[siteURL]' style='color:#08c;'>$settings[siteURL]</a></font></td>
-		</tr>
-		</table>
+		</tr>";
+		#<tr>
+		#	<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'>www</font></td>
+		#	<td><font face='Helvetica, Verdana, Arial, sans-serif' style='font-size:13px;'><a href='$settings[siteURL]' style='color:#08c;'>$settings[siteURL]</a></font></td>
+		#</tr>
+		$mail['footer2'] .= "</table>
 	</td>
 </tr>
 </table>
@@ -118,6 +121,7 @@ function sendIPnotifEmail($to, $subject, $content)
 	
 	# get active user name */
 	$sender = getActiveUserDetails();
+	if(!getActiveUserDetails()){$sender = getUserDetailsByName("Admin");}else{$sender = getActiveUserDetails();}
 	
 	# set html content
 	$mail['content']  = $mail['header'];
@@ -139,8 +143,17 @@ function sendIPnotifEmail($to, $subject, $content)
 
 	# set mail parameters
 	try {
+
+
 		$pmail->SetFrom($mailsettings['mAdminMail'], $mailsettings['mAdminName']);
-		$pmail->AddAddress($to);
+		if( preg_match('/,/',$to) ){
+			$a = explode(",", $to);
+			foreach($a as $b) {
+				$pmail->AddAddress($b);
+			}
+		}else{	
+			$pmail->AddAddress($to);
+		}
 		$pmail->ClearReplyTos();
 		$pmail->AddReplyTo($sender['email'], $sender['real_name']);
 		// CC ender
@@ -579,6 +592,7 @@ function sendStatusUpdateMail($content, $subject)
 		foreach($admins as $admin) {
 			if($admin['mailNotify']=="Yes") {
 			$pmail->AddAddress($admin['email']);
+
 		}	}
 		// content
 		$pmail->Subject = $subject;

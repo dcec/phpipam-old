@@ -333,7 +333,7 @@ function checkLogin ($username, $md5password, $rawpassword)
 
 				/* check if user exist in database and has domain user flag */		
 				$authAD = checkADLogin ($username, $rawpassword);
-				print ("<div class='alert alert-success'>".$authAD." :".$username." :".$rawpassword."</div>");
+				#print ("<div class='alert alert-success'>".$authAD." :".$username." :".$rawpassword."</div>");
 		
 				if($authAD == "ok") {
 					# get user lang

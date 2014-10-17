@@ -89,6 +89,9 @@ else							{ $btnName = ""; }
 if($act=="delete")	{ $delete = "readonly='readonly'"; }
 else				{ $delete = ""; }
 
+if($subnetPerm < 3)	{ $readonly = " readonly='readonly'"; }
+else				{ $readonly = ""; }
+
 
 /* get all selected fields for filtering */
 $setFieldsTemp = getSelectedIPaddrFields();
@@ -117,7 +120,7 @@ $myFieldsSize = sizeof($myFields);
 		<td><?php print _('IP address'); ?> *</td>
 		<td>
 		<div class="input-group">
-			<input type="text" name="ip_addr" class="ip_addr form-control input-sm" value="<?php print $details['ip_addr']; if(is_numeric($_REQUEST['stopIP'])>0) print "-".transform2long($_REQUEST['stopIP']); ?>" placeholder="<?php print _('IP address'); ?>">
+			<input type="text" name="ip_addr" class="ip_addr form-control input-sm" value="<?php print $details['ip_addr']; if(is_numeric($_REQUEST['stopIP'])>0) print "-".transform2long($_REQUEST['stopIP']); ?>" <?php if($subnetPerm < 3) print " readonly='readonly'"; ?> placeholder="<?php print _('IP address'); ?>">
     		<span class="input-group-addon">
     			<i class="fa fa-gray fa-info" rel="tooltip" data-html='true' data-placement="left" title="<?php print _('You can add,edit or delete multiple IP addresses<br>by specifying IP range (e.g. 10.10.0.0-10.10.0.25)'); ?>"></i>
     		</span>
@@ -136,11 +139,22 @@ $myFieldsSize = sizeof($myFields);
 	</tr>
 
 
+
+
+
+
+
+
+
+
+
+
+	
 	<!-- DNS name -->
 	<?php
 	if(!isset($details['dns_name'])) {$details['dns_name'] = "";}
 		print '<tr>'. "\n";
-		print '	<td>'._('Hostname').'</td>'. "\n";
+		print '	<td>'._('DNS name').'</td>'. "\n";
 		print '	<td>'. "\n";
 		print '	<div class="input-group">';
 		print ' <input type="text" name="dns_name" class="ip_addr form-control input-sm" placeholder="'._('Hostname').'" value="'. $details['dns_name']. '" '.$delete.'>'. "\n";
@@ -167,11 +181,13 @@ $myFieldsSize = sizeof($myFields);
 	if(in_array('mac', $setFields)) {
 		if(!isset($details['mac'])) {$details['mac'] = "";}	
 
+
 		print '<tr>'. "\n";
 		print '	<td>'._('MAC address').'</td>'. "\n";
 		print '	<td>'. "\n";
-		print ' <input type="text" name="mac" class="ip_addr form-control input-sm" placeholder="'._('MAC address').'" value="'. $details['mac']. '" size="30" '.$delete.'>'. "\n";
-		print '	</td>'. "\n";
+
+
+		print ' <input type="text" name="mac" class="ip_addr form-control input-sm" placeholder="'._('MAC address').'" value="'. $details['mac']. '" size="30" '.$delete.$readonly.'>'. "\n";		print '	</td>'. "\n";
 		print '</tr>'. "\n";
 	}
 	?>
@@ -200,7 +216,7 @@ $myFieldsSize = sizeof($myFields);
 		print '	<td>'._('Device').'</td>'. "\n";
 		print '	<td>'. "\n";
 
-		print '<select name="switch" class="ip_addr form-control input-sm input-w-auto" '.$delete.'>'. "\n";
+		print '<select name="switch" class="ip_addr form-control input-sm input-w-auto" '.$delete.$readonly.'>'. "\n";
 		print '<option disabled>'._('Select device').':</option>'. "\n";
 		print '<option value="0" selected>'._('None').'</option>'. "\n";
 		$devices = getAllUniqueDevices();
@@ -211,7 +227,7 @@ $myFieldsSize = sizeof($myFields);
 			if(in_array($subnet2['sectionId'], $sections)) {
 			//if same
 			if($device['id'] == $details['switch']) { print '<option value="'. $device['id'] .'" selected>'. $device['hostname'] .'</option>'. "\n"; }
-			else 									{ print '<option value="'. $device['id'] .'">'. $device['hostname'] .'</option>'. "\n";			 }
+			elseif(!$readonly) 									{ print '<option value="'. $device['id'] .'">'. $device['hostname'] .'</option>'. "\n";			 }
 			}
 		}
 		print '</select>'. "\n";
@@ -256,10 +272,12 @@ $myFieldsSize = sizeof($myFields);
 		print '		<select name="state" '.$delete.' class="ip_addr form-control input-sm input-w-auto">'. "\n";
 		
 		#active, reserved, offline
+
 		print '		<option value="1" '; if(isset($details['state'])) { if ($details['state'] == "1") print 'selected'; } print '>'._('Active').'</option>'. "\n";
 		print '		<option value="2" '; if(isset($details['state'])) { if ($details['state'] == "2") print 'selected'; } print '>'._('Reserved').'</option>'. "\n";
 		print '		<option value="0" '; if(isset($details['state'])) { if ($details['state'] == "0") print 'selected'; } print '>'._('Offline').'</option>'. "\n";
 		print '		<option value="3" '; if(isset($details['state'])) { if ($details['state'] == "3") print 'selected'; } print '>'._('DHCP').'</option>'. "\n";
+
 
 		print '		</select>'. "\n";
 		print '	</td>'. "\n";
@@ -274,10 +292,10 @@ $myFieldsSize = sizeof($myFields);
 		else								{ $checked = ""; }
 		
 		print '<tr>';
-	 	print '<td>'._("Ping exclude").'</td>';
+	 	print '<td>'._("Alive exclude").'</td>';
 	 	print '<td>';
 	 	print "	<div class='checkbox info2'>";
-		print ' 	<input type="checkbox" class="ip_addr" name="excludePing" value="1" '.$checked.' '.$delete.'>'. _('Exclude from ping status checks');
+		print ' 	<input type="checkbox" class="ip_addr" name="excludePing" value="1" '.$checked.' '.$delete.'>'. _('Exclude from status checks');
 		print "	</div>";
 	 	print '</td>';
 	 	print '</tr>';
@@ -379,6 +397,7 @@ $myFieldsSize = sizeof($myFields);
 		<td colspan="2"><hr></td>
 	 </tr>
 	 
+
 	 <tr>
 	 	<td><?php print _('Unique'); ?></td>
 	 	<td>

@@ -64,7 +64,7 @@ if(empty($_POST['lastId']) || ($_POST['lastId'] == "undefined")) 	{ $_POST['last
 if(!isset($_POST['direction'])) 									{ $_POST['direction'] = ""; }
 
 /* get requested logs */
-$logs = getAllLogs($logCount, $_POST['direction'], $_POST['lastId'], $highestId, $_POST['InformationalQuery'], $_POST['NoticeQuery'], $_POST['WarningQuery']);
+$logs = getAllLogs($logCount, $_POST['direction'], $_POST['lastId'], $highestId, $_POST['InformationalQuery'], $_POST['NoticeQuery'], $_POST['WarningQuery'], $_POST['filter']);
 
 $x = 0;
 foreach ($logs as $log)

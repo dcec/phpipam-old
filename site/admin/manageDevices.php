@@ -37,7 +37,7 @@ else {
 	print '	<th>'._('Hostname').'</th>';
 	print '	<th>'._('IP address').'</th>';
 	print '	<th>'._('Type').'</th>';
-	print '	<th>'._('Vendor').'</th>';
+	#print '	<th>'._('Vendor').'</th>';
 	print '	<th>'._('Model').'</th>';
 	print '	<th>'._('SW version').'</th>';
 	print '	<th>'._('Description').'</th>';
@@ -53,19 +53,17 @@ else {
 
 	foreach ($devices as $device) {
 	$site = subnetGetSITEdetailsById($device['siteId']);
-	
 	//print details
 	print '<tr>'. "\n";
 	
 	print '	<td>'. $device['hostname'] .'</td>'. "\n";
 	print '	<td>'. $device['ip_addr'] .'</td>'. "\n";
 	print '	<td>'. $device['tname'] .'</td>'. "\n";
-	print '	<td>'. $device['vendor'] .'</td>'. "\n";
+	#print '	<td>'. $device['vendor'] .'</td>'. "\n";
 	print '	<td>'. $device['model'] .'</td>'. "\n";
 	print '	<td>'. $device['version'] .'</td>'. "\n";
 	print '	<td class="description">'. $device['description'] .'</td>'. "\n";
 	print '	<td>'. $site['name'] .' ('. $site['company'] .')</td>'. "\n";
-	
 	//sections
 	print '	<td class="sections">';
 		$temp = explode(";",$device['sections']);
@@ -79,7 +77,7 @@ else {
 		}
 	
 	print '	</td>'. "\n";
-
+	
 	//custom
 	if(sizeof($custom) > 0) {
 		foreach($custom as $field) {

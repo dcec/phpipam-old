@@ -128,15 +128,16 @@ if(sizeof($ip)>1) {
 	//switch
 	if(in_array('switch', $setFields)) {
 	print "<tr>";
-	print "	<th>"._('Switch')."</th>";
+	print "	<th>"._('Device')."</th>";
 	if(strlen($ip['switch'])>0) {
 		# get switch
 		$switch = getDeviceById ($ip['switch']);
 		if(strlen($switch['description'])==0) $switch['description'] = "";
 		else								  $switch['description'] = "($switch[description])";
-		print "	<td>$switch[hostname] $switch[description]</td>";	
+		print "	<td><a href='tools/devices/hosts/".$switch['id']."/'>$switch[hostname] $switch[description]</a></td>";	
 	} else {
-		print "	<td>$ip[switch]</td>";	
+		print "	<td><a href='tools/devices/hosts/".$switch['id']."/'>$ip[switch]</a></td>";	
+
 	}
 	print "</tr>";
 	}

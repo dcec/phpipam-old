@@ -25,6 +25,12 @@ $cFieldsNum['vlans']				= getCustomFieldsNumArr('vlans');
 $cFields['vlans']['title'] 			= "Custom VLAN fields";
 $cFields['vlans']['tooltip'] 		= "Add new custom VLAN field";
 
+/* custom site */
+$cFields['sites'] 					= getCustomFields('sites');
+$cFieldsNum['sites']				= getCustomFieldsNumArr('sites');
+$cFields['sites']['title'] 			= "Custom SITE fields";
+$cFields['sites']['tooltip'] 		= "Add new custom SITE field";
+
 /* custom users */
 $cFields['users'] 					= getCustomFields('users');
 $cFieldsNum['users']				= getCustomFieldsNumArr('users');
