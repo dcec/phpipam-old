@@ -48,16 +48,18 @@ function getDevicesAddressFromNedi ($min = NULL,$max = NULL,$index,$days = 30,$i
 }
 
 
-function getDevicesAddressFromGlpi ($min = NULL,$max = NULL,$index)
+function getDevicesAddressFromGlpi ($min = NULL,$max = NULL,$index,$days = 30)
 {
 	global $db;                                                                      # get variables from config file
 	$database = new database($db['glpi_host'], $db['glpi_user'], $db['glpi_pass'], $db['glpi_name']);  
-
+	
+	$days = (time() - ($days * 86400));
+	
    # $query    = 'select devices.device,ifip,ifmac,interfaces.ifname,description,INET_NTOA(ifip) as ip,lastdis as lastSeen from devices left join interfaces on devices.device=interfaces.device left join networks on devices.device=networks.device and interfaces.ifname=networks.ifname where ifip > "'. $min .'" and ifip < "'. $max .'" order by ifip;';
 	if($min and $max){
-		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'";';
+		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'" and UNIX_TIMESTAMP(last_ocs_conn) >'.$days.';';
 	}else{
-		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) > "0" group by hostname;';
+		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) > "0" and UNIX_TIMESTAMP(last_ocs_conn) >'.$days.' group by hostname;';
 	}
 	/* execute */
 	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}

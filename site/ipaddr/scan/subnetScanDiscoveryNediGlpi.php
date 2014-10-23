@@ -241,9 +241,6 @@ foreach($subnetIds as $subnetId) {
 			updateDeviceDetails($device_add);
 			$devices = getDeviceIndexHostname('hostname');
 		}
-		if (!$r['hostname'] && $r['device']){
-			$r['hostname'] = $r['device'];
-		}
 		if ($r['hostname'] && !array_key_exists($r['hostname'], $devices)) {
 			$device_add = $result[$k];
 			$device_add['hostname'] = $r['hostname'];
@@ -254,6 +251,9 @@ foreach($subnetIds as $subnetId) {
 			updateDeviceDetails($device_add);
 			$devices = getDeviceIndexHostname('hostname');
 		}
+		if (!$r['hostname'] && $r['device']){
+			$r['hostname'] = $r['device'];
+		}
 		if (array_key_exists($r['hostname'], $devices)) {
 			#print "<div class='alert alert-info'>Update section on Device: ".$r['hostname']."</div>";
 			$result[$k]['switch']=$devices[$r['hostname']]['id'];
@@ -262,7 +262,11 @@ foreach($subnetIds as $subnetId) {
 				print "<div class='alert alert-info'>Update section on Device: ".$dev_update."</div>";
 			}
 		}
-		$result[$k]['subnetname'] = $subnet['description'];
+		#if($subnet['description'] != ""){
+		$result[$k]['subnetname'] = ($subnet['description'] != "")?$subnet['description']:transform2long($subnet['subnet'])."/".$subnet['mask'];
+		#}else{
+		#	$result[$k]['subnetname'] = transform2long($subnet['subnet'])."/".$subnet['mask'];
+		#}
 		$result[$k]['sectionId'] = $subnet['sectionId'];
 		$result[$k]['subnetId'] = $subnet['id'];
 		$total[$subnetId][$k] = $result[$k];

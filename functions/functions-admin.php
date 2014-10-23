@@ -1107,8 +1107,7 @@ function updateSubnetPermissions ($subnet)
  */
 function updateSitePermissions ($site)
 {
-    global $db;                                                                     # get variables from config file
-    $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);	# open db connection   
+    global $database;   
 
     # replace special chars
     $site['permissions'] = mysqli_real_escape_string($database, $site['permissions']);
@@ -1774,8 +1773,7 @@ function updateVLANDetails($vlan, $lastId = false)
  */
 function updateSITEDetails($site, $lastId = false)
 {
-    global $db;                                                                      # get variables from config file
-    $database = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
+    global $database;
 
     /* set querry based on action */
     if($site['action'] == "add") {
@@ -2268,19 +2266,19 @@ function getCustomFields($table)
 		unset($res['editDate'],$res['widgets'],$res['favourite_subnets'],$res['mailNotify']);
 	}
 	elseif($table == "devices") {
-		unset($res['id'], $res['hostname'], $res['ip_addr'], $res['type'], $res['vendor'], $res['model'], $res['version'], $res['description'], $res['sections'], $res['editDate']);
+		unset($res['id'], $res['hostname'], $res['ip_addr'], $res['type'], $res['vendor'], $res['model'], $res['version'], $res['description'], $res['sections'], $res['editDate'], $res['siteId']);
 	}
 	elseif($table == "subnets") {
 		unset($res['id'], $res['subnet'], $res['mask'], $res['sectionId'], $res['description'], $res['masterSubnetId']);
-		unset($res['vrfId'], $res['allowRequests'], $res['adminLock'], $res['vlanId'], $res['showName'],$res['permissions'],$res['editDate']);
+		unset($res['vrfId'], $res['allowRequests'], $res['adminLock'], $res['vlanId'], $res['siteId'], $res['showName'],$res['permissions'],$res['editDate']);
 		unset($res['pingSubnet'], $res['isFolder']);
 	}
 	elseif($table == "ipaddresses") {
-		unset($res['id'], $res['subnetId'], $res['ip_addr'], $res['description'], $res['dns_name'], $res['switch']);
+		unset($res['id'], $res['subnetId'], $res['ip_addr'], $res['description'], $res['dns_name'], $res['switch'], $res['siteId'], $res['requestId']);
 		unset($res['port'], $res['mac'], $res['owner'], $res['state'], $res['note'], $res['lastSeen'], $res['excludePing'], $res['editDate']);		
 	}
 	elseif($table == "vlans") {
-		unset($res['vlanId'], $res['name'], $res['number'], $res['description'],$res['editDate']);		
+		unset($res['vlanId'], $res['name'], $res['number'], $res['description'], $res['switch'],$res['editDate']);		
 	}
 	elseif($table == "sites") {
 		unset($res['siteId'], $res['name'], $res['company'], $res['location'],$res['permissions'],$res['editDate'], $res['masterSiteId']);

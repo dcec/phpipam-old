@@ -75,9 +75,7 @@ $setFields = explode(";", $setFieldsTemp);
 			<a href="tools/site/"><i class="fa fa-angle-right pull-right icon-gray"></i> <?php print _('Site'); ?></a>
 		</li>  
 		<?php } ?> 
-	</ul>  
-       
-    <?php } ?>    
+	</ul>   
 </div>
 
 

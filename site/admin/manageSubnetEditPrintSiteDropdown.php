@@ -17,7 +17,7 @@ isUserAuthenticated(false);
 	<option disabled="disabled"><?php print _('Select SITE'); ?>:</option>
 	<?php
 
-		$sites = getAllSITEs();
+		$sites = getAllSites();
 		
 		#$site['siteId'] = $subnetDataOld['siteId'];#
 		if($_POST['action'] == "add") { $site['siteId'] = 0; }

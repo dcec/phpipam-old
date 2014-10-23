@@ -1301,10 +1301,10 @@ function getSubnetDetailsById ($id)
  */
 function getSiteDetailsById ($siteId)
 {
-    global $db;                                                                      # get variables from config file 
+    global $database;
+	
     /* set query, open db connection and fetch results */
     $query         = 'select * from `sites` where `siteId` = "'. $siteId .'";';
-    $database      = new database($db['host'], $db['user'], $db['pass'], $db['name']);
 
     /* execute */
     try { $SubnetDetails = $database->getArray( $query ); }
@@ -1610,8 +1610,7 @@ function subnetContainsSlaves($subnetId)
  */
 function siteContainsSlaves($siteId)
 {
-    global $db;                                                                      # get variables from config file
-    $database    = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
+    global $database; 
     
     /* get all ip addresses in subnet */
     $query 		  = 'SELECT count(*) from sites where `masterSiteId` = "'. $siteId .'";';    
@@ -1943,7 +1942,7 @@ function printDropdownMenuBySite($subnetSiteId = "0")
 {
 		# get all sites
 		#$sites = fetchSites ($siteId);
-		$sites = getAllSITEs();
+		$sites = getAllSites();
 		$html = array();
 		$children = array();
 		$rootId = 0;									# root is 0
@@ -2147,7 +2146,7 @@ function getAllSiteParents ($siteId)
  */
 function fetchSites ($siteId, $orderType = "subnet", $orderBy = "asc" )
 {
-    global $db;                                                                      # get variables from config file
+    global $database; 
     /* check for sorting in settings and override */
     $settings = getAllSettings();
     
@@ -2169,8 +2168,6 @@ function fetchSites ($siteId, $orderType = "subnet", $orderBy = "asc" )
 
     /* set query, open db connection and fetch results */
     $query 	  = "select * from `sites` order by masterSiteId;"; # ORDER BY `isFolder` desc,`masterSubnetId`,`$orderType` $orderBy
-    
-    $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);
     
     /* execute */
     try { $sites = $database->getArray( $query ); }
@@ -2215,8 +2212,7 @@ function subnetGetVLANdetailsById($vlanId)
  */
 function subnetGetSITEdetailsById($siteId)
 {
-    global $db;                                                                      # get variables from config file
-    $database    = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
+    global $database; 
     
     /* first update request */
     $query    = 'select * from `sites` where `siteId` = "'. $siteId .'";';
@@ -2330,6 +2326,39 @@ function getSubnetsByVLANid ($id)
 
 
 
+/**
+ * Get all VLANS
+ */
+function getAllSites($tools = false)
+{
+    global $database;
+    
+    # custom fields
+    $myFields = getCustomFields('sites');     
+    $myFieldsInsert['id']  = '';
+	
+    if(sizeof($myFields) > 0) {
+		/* set inserts for custom */
+		foreach($myFields as $myField) {			
+			$myFieldsInsert['id']  .= ',`sites`.`'. $myField['name'] .'`';
+		}
+	}
+		
+    /* check if it came from tools and use different query! */
+    if($tools) 	{ $query = 'SELECT siteId,name,company,location,permissions,masterSiteId'.$myFieldsInsert['id'].' FROM sites ORDER BY name ASC;'; }
+    else 		{ $query = 'select * from `sites` order by `name` asc;'; }
+	
+    /* execute */
+    try { $site = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    }  
+  
+	/* return vlan details */
+	return $site;
+}
 
 /**
  * Calculate maximum number of IPv4 / IPv6 hosts per subnet

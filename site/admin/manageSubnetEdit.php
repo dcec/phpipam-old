@@ -422,7 +422,7 @@ else															{ $readonly = false; }
 	$parent_stack1 = array();
 	$allParents1 = getAllParents ($_REQUEST['subnetId']);
 
-	$sites = getAllSITEs();
+	$sites = getAllSites();
 	foreach ( $sites as $item )
 			$children[$item['masterSiteId']][$item['siteId']] = $item;
 	$loop = !empty( $children[$rootId] );

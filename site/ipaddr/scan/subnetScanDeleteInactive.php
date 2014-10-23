@@ -86,19 +86,20 @@ foreach($subnetIds as $subnetId) {
 					$ip = getIpAddrDetailsById ($addresses[$k]['id']);
 					$ip['action'] = "delete";
 					if(!$_POST){$user = "Crontab";}else{$user = NULL;}
-					
-					if(!$_POST){
-					/* execute insert / update / delete query */    
-						if (!modifyIpAddress($ip)) {
-							print '<div class="alert alert-danger">'._('Error deleting IP address').'!</div>';
-							updateLogTable ('Error '. $ip['action'] .' IP address '. $ip['ip_addr'], 'Error '. $ip['action'] .' IP address '. $ip['ip_addr'] .'<br>SubnetId: '. $ip['subnetId'], 2);
+					if($ip['ip_addr'] > 0){
+						if(!$_POST){
+						/* execute insert / update / delete query */    
+							if (!modifyIpAddress($ip)) {
+								print date('Y-m-d H:i:s') . ': '._('Error deleting IP address $ip[ip_addr]')."!\n";
+								updateLogTable ('Error '. $ip['action'] .' IP address '. $ip['ip_addr'], 'Error '. $ip['action'] .' IP address '. $ip['ip_addr'] .'<br>SubnetId: '. $ip['subnetId'], 2);
+							}
+							else {
+								print date('Y-m-d H:i:s') . ': '._("IP $ip[ip_addr] $ip[action] successful")."!\n";
+								updateLogTable ($ip['action'] .' of IP address '. $ip['ip_addr'] .' succesfull!', $ip['action'] .' of IP address '. $ip['ip_addr'] .' succesfull!<br>SubnetId: '. $ip['subnetId'], 0);
+							}
 						}
-						else {
-							print '<div class="alert alert-success">'._("IP $ip[action] successful").'!</div>';
-							updateLogTable ($ip['action'] .' of IP address '. $ip['ip_addr'] .' succesfull!', $ip['action'] .' of IP address '. $ip['ip_addr'] .' succesfull!<br>SubnetId: '. $ip['subnetId'], 0);
-						}
+						$delete[$k] = $ip;
 					}
-					$delete[$k] = $ip;
 				}
 			}
 		}

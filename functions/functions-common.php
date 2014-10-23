@@ -262,7 +262,7 @@ function getUserDetailsByName ($username)
 			global $database;
 		} 
 	    /* set query, open db connection and fetch results */
-	    $query    = 'select * from users where username LIKE BINARY "'. $username .'";';
+	    $query    = 'select * from users where username LIKE "'. $username .'";';
 
 	    /* execute */
 	    try { $details = $database->getArray( $query ); }
@@ -1556,9 +1556,8 @@ function getAllSiteSlaves ($siteId, $multi = false)
 	$removeSlaves[] = $siteId;		# first
 
 	# db
-	global $db;                                                                      # get variables from config file
-	$database    = new database($db['host'], $db['user'], $db['pass'], $db['name']); 
-
+	global $database; 
+	
 	while($end == false) {
 		
 		/* get all immediate slaves */

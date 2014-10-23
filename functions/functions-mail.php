@@ -616,13 +616,5 @@ function sendStatusUpdateMail($content, $subject)
 }
 
 
-
-/**
- *	Send object update mail
- */ 
-function sendObjectUpdateMails($content, $subject)
-{
-	return true;
-}
  
 ?>
