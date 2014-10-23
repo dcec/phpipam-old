@@ -34,6 +34,14 @@ class database extends mysqli  {
 		//mysqli_report(MYSQLI_REPORT_ERROR);
 	} 
 
+
+
+
+
+
+
+
+
 	
 	/**
 	 * execute given query 
@@ -45,6 +53,7 @@ class database extends mysqli  {
 		$result     = parent::query( $query );
 		$this->lastSqlId   = $this->insert_id;
 		
+
 		/* if it failes throw new exception */
 		if ( mysqli_error( $this ) ) {
             throw new exception( mysqli_error( $this ), mysqli_errno( $this ) ); 
@@ -55,6 +64,7 @@ class database extends mysqli  {
         	else 		{ return true; }
         }
 	}
+
 	
 
 	/**
@@ -72,6 +82,9 @@ class database extends mysqli  {
         }
         /* return result */
         return $resp;   
+
+
+
     }
 
 	
@@ -120,6 +133,9 @@ class database extends mysqli  {
         	$fields = array();
         	return $fields;
         }
+
+
+
 	}
 
 
@@ -156,6 +172,9 @@ class database extends mysqli  {
 		
 		/* return result array of rows */
 		return($rows);
+
+
+
 	}
 	
 	
@@ -177,6 +196,10 @@ class database extends mysqli  {
        		if($lastId)	{ return $this->lastSqlId; }
         	else 		{ return true; }
         }	
+
+
+
+
 	}
 
 
@@ -196,6 +219,10 @@ class database extends mysqli  {
         else {
             return true;
         }	
+
+
+
+
 	}
 }
 

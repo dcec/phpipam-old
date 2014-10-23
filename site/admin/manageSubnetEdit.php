@@ -74,6 +74,7 @@ if(isset($_POST['vlanId'])) {
 if(isset($_POST['siteId'])) {
 	$subnetDataOld['siteId'] = $_POST['siteId'];
 }
+
 # set readonly flag
 if($_POST['action'] == "edit" || $_POST['action'] == "delete")	{ $readonly = true; }
 else															{ $readonly = false; }

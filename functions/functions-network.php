@@ -1307,6 +1307,7 @@ function getSiteDetailsById ($siteId)
     $query         = 'select * from `sites` where `siteId` = "'. $siteId .'";';
 
     /* execute */
+	#print ("<div class='alert alert-info'>: $error</div>");
     try { $SubnetDetails = $database->getArray( $query ); }
     catch (Exception $e) { 
         $error =  $e->getMessage(); 
@@ -1976,7 +1977,7 @@ function printDropdownMenuBySite($subnetSiteId = "0")
 		$html[] = "<optgroup label='"._("Sites")."'>";
 		
 		# display selected subnet as opened
-		$allParents = getAllSiteParents ($_REQUEST['siteId']);
+		#$allParents = getAllSiteParents ($_REQUEST['siteId']);
 		
 		# root subnet
 		#if(checkAdmin(false)){
@@ -2031,7 +2032,7 @@ function printDropdownMenuByMasterSite($masterSiteId = "0",$SiteId = "0")
 {
 		# get all sites
 		#$sites = fetchSites ($siteId);
-		$sites = getAllSITEs();
+		$sites = getAllSites();
 		$html = array();
 		$children = array();
 		$rootId = 0;									# root is 0
