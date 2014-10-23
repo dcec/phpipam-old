@@ -62,6 +62,6 @@ $debugging = true;
  *  Also change 
  *	RewriteBase / in .htaccess
  ******************************/
-define('BASE', "/phpipam-code/");
+define('BASE', "/phpipam/");
 
 ?>

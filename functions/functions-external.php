@@ -55,7 +55,6 @@ function getDevicesAddressFromGlpi ($min = NULL,$max = NULL,$index,$days = 30)
 	
 	$days = (time() - ($days * 86400));
 	
-   # $query    = 'select devices.device,ifip,ifmac,interfaces.ifname,description,INET_NTOA(ifip) as ip,lastdis as lastSeen from devices left join interfaces on devices.device=interfaces.device left join networks on devices.device=networks.device and interfaces.ifname=networks.ifname where ifip > "'. $min .'" and ifip < "'. $max .'" order by ifip;';
 	if($min and $max){
 		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'" and UNIX_TIMESTAMP(last_ocs_conn) >'.$days.';';
 	}else{
@@ -113,10 +112,9 @@ function getSubnetFromGlpi ($address,$netmask)
 	global $db;                                                                      # get variables from config file
 	$database = new database($db['glpi_host'], $db['glpi_user'], $db['glpi_pass'], $db['glpi_name']);  
 
-   # $query    = 'select devices.device,ifip,ifmac,interfaces.ifname,description,INET_NTOA(ifip) as ip,lastdis as lastSeen from devices left join interfaces on devices.device=interfaces.device left join networks on devices.device=networks.device and interfaces.ifname=networks.ifname where ifip > "'. $min .'" and ifip < "'. $max .'" order by ifip;';
     $query    = 'select * from glpi_ipnetworks where address = "'. $address .'" and netmask = "'. $netmask .'";';
     /* execute */
-	#print ("<div class='alert alert-info'>Query:$query</div>");
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
     try { $result = $database->getArray( $query ); }
     catch (Exception $e) { 
         $error =  $e->getMessage(); 
@@ -147,9 +145,11 @@ function updateSubnetOnGlpi($res,$address,$netmask)
 	}
 	$temp .= ' where address = "'. $address .'" and netmask = "'. $netmask .'";';
 	$query[] = $temp;
+	
 	# glue
     $query = implode("\n", $query);
-	#print ("<div class='alert alert-info'>Query:$query $k</div>\n");
+	
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
 	//update
     try { $database->executeMultipleQuerries($query); }
     catch (Exception $e) { 
@@ -166,7 +166,6 @@ function insertSubnetOnGlpi($res)
     global $db;                                                                      # get variables from config file
     $database = new database($db['glpi_host'], $db['glpi_user'], $db['glpi_pass'], $db['glpi_name']);
 	
-	#"insert into `devices` (`hostname`,`ip_addr`, `type`, `model`, `description`, `sections`) values ('$ip[device]', '".Transform2long($ip[ip_addr])."', '$ip[type]', '$ip[model]', '$ip[description]', '$sections'); ";
     $temp = 'insert into `glpi_ipnetworks` ';
 	$row = '(`';
 	$value = ') values ("';
@@ -180,7 +179,8 @@ function insertSubnetOnGlpi($res)
 	$query[] = $temp;
 	# glue
     $query = implode("\n", $query);
-	#print ("<div class='alert alert-info'>Query:$query</div>\n");
+	
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
 	//update
     try { $database->executeMultipleQuerries($query); }
     catch (Exception $e) { 
@@ -201,6 +201,25 @@ function getDevicesFromNedi ($index,$where = NULL,$limit = true)
 	global $db;                                                                      # get variables from config file
 	$database = new database($db['nedi_host'], $db['nedi_user'], $db['nedi_pass'], $db['nedi_name']);  
 
+	$DevVendor	= array(
+    "b" => "Cisco",
+    "c" => "Dell",
+	"g" => "Hewlett-Packard",
+	"r" => "Brocade",
+	"o" => "Avaya",
+	"y" => "Alcatel-Lucent",
+	"p" => "Extreme Networks",
+	"n" => "NetApp",
+	"i" => "Ibm",
+	"w" => "Radware",
+	"f" => "F5",
+	"s" => "Sun/Oracle",
+	"t" => "Avocent/Emerson",
+	"j" => "Juniper",
+	"f" => "Fortinet",
+	"v" => "VMware"
+	);
+	
     $query    = 'select device,devip as ip_addr,type as model,description,icon from devices'; 
 	if ($where){
 		$query .= ' where device = "'.$where.'"';
@@ -224,8 +243,9 @@ function getDevicesFromNedi ($index,$where = NULL,$limit = true)
 	foreach($result as $r) {
 		$devices[$r[$index]] = $r;	
 		$devices[$r[$index]]['type'] = DevTyp($r['icon']);
-		$vendor = DevVendor("",substr($r['icon'],2,1));
-		$devices[$r[$index]]['vendor'] = $vendor[0];
+		#$vendor = DevVendor("",substr($r['icon'],2,1));
+		#$devices[$r[$index]]['vendor'] = $vendor[0];
+		$devices[$r[$index]]['vendor'] = $DevVendor[substr($r['icon'],2,1)];
 	}
 	
     /* return true, else false */
@@ -403,7 +423,6 @@ function getBalancedFromNedi ($min,$max,$index,$days = 30)
 	$query    = 'select *,clip as ifip,INET_NTOA(clip) as ip from bpolicies LEFT JOIN bfarms USING (device,farm) where clip > "'. $min .'" and clip < "'. $max .'" order by clip;';
 
     /* execute */
-	#print ("<div class='alert alert-info'>Query:$query</div>\n");
 	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
 	
     try { $result = $database->getArray( $query ); }
@@ -418,9 +437,6 @@ function getBalancedFromNedi ($min,$max,$index,$days = 30)
 	
 	$devices = array();
 	foreach($result as $r) {
-		#if (!array_key_exists($r['ifip'], $devices)) {$devices[$r['ifip']]=array();}
-		#if (!array_key_exists($r['ifip'], $devices)){$devices[$r['ifip']]=array();}
-		#if (!array_key_exists('farm', $devices[$r['ifip']])){$devices[$r['ifip']]['farm']=array();}
 		if (!array_key_exists($r['ifip'], $devices) || !array_key_exists('farm', $devices[$r['ifip']]) || !array_key_exists($r['farm'], $devices[$r['ifip']]['farm'])) {
 			$devices[$r['ifip']]['farm'][$r['farm']]=$r;
 			if($r['rsip'] != ""){$devices[$r['ifip']]['farm'][$r['farm']]['bfarm'][$r['rsip']]=$r;}
@@ -430,8 +446,6 @@ function getBalancedFromNedi ($min,$max,$index,$days = 30)
 		if ($r['rsip'] != "" && (!array_key_exists($r['rsip'], $devices) || !array_key_exists('bfarm', $devices[$r['ifip']]) || !array_key_exists($r['farm'], $devices[$r['ifip']]['bfarm']))){
 			$devices[$r['rsip']]['bfarm'][$r['farm']]=$r;
 		}
-		
-		#$devices[$r['ifip']]=$r;
 	}
 	
     /* return true, else false */
@@ -449,7 +463,7 @@ function getNatFromNedi ($min,$max)
 	$query    = 'select *,INET_NTOA(nip) as n_ip,INET_NTOA(mip) as m_ip from nats where ( nip > "'. $min .'" and nip < "'. $max .'" ) or ( mip > "'. $min .'" and mip < "'. $max .'" );';
 
     /* execute */
-	#print ("<div class='alert alert-info'>Query:$query</div>\n");
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
 	
     try { $result = $database->getArray( $query ); }
     catch (Exception $e) { 
@@ -483,9 +497,6 @@ function getNatFromNedi ($min,$max)
 				$devices[$r['nip']]['vip'][$r['mip']]=$r;
 			}
 		}
-		#if($r['type'] == "VIP" && $devices[$r['nip']]['iptype'] == "nip"){
-		#	$devices[$r['nip']]['mip'][$r['mip']]=$r;
-		#}
 	}
 	
     /* return true, else false */
@@ -521,7 +532,8 @@ function getVansFromNedi ($id = '',$device = '',$name = '')
         print ("<div class='alert alert-danger'>"._('Error').": $error:$query</div>");
         return false;
     }  
-	#print ("<div class='alert alert-info'>Query:$query</div>");
+	
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
     /* close database connection */
     $database->close();	
 	
@@ -552,7 +564,8 @@ function getVansbyIndex ()
         print ("<div class='alert alert-danger'>"._('Error').": $error:$query</div>");
         return false;
     }  
-	#print ("<div class='alert alert-info'>Query:$query</div>");
+	
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
     /* close database connection */
     $database->close();	
 	
@@ -603,14 +616,12 @@ function getNetworksFromNedi ($index,$min,$max)
 			if (sizeof($errors) != 0) { die('<div class="alert alert-danger alert-absolute">'._('Invalid input').': '.  $errors[0] .'</div>'); }
 
 			if ($index=='subnet'){
-				#$subnet=Transform2decimal(IPSubnetCalc(2, Transform2long($r[ifip])."/".$r['prefix']));
 				$subnet_det = calculateIpCalcResult($cidr);
 				$subnet = Transform2decimal($subnet_det['Network']);
 				$networks[$subnet]=$r;
 				$networks[$subnet]['subnet']=$subnet;
 			}else{
 				$networks[$r[$index]]=$r;
-				#$networks[$r[$index]]['subnet']=Transform2decimal(IPSubnetCalc(2, Transform2long($r[ifip])."/".$r['prefix']));
 				$subnet_det = calculateIpCalcResult($cidr);
 				$subnet = Transform2decimal($subnet_det['Network']);
 				$networks[$r[$index]]['subnet'] = $subnet;
@@ -807,10 +818,8 @@ function insertNediScanResults($res, $subnetId)
 			/* set inserts for custom */
 			foreach($myFields as $myField) {	
 				# empty?
-				if(strlen($ip[$myField['name']])==0) {
-					#$myFieldsInsert['query']  .= ', `'. $myField['name'] .'`';
-					#$myFieldsInsert['values'] .= ", ''";				
-				} else {
+				if(strlen($ip[$myField['name']])>0) {
+
 					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'`';
 					$myFieldsInsert['values'] .= ", '". $ip[$myField['name']] . "'";
 				}	
@@ -820,29 +829,17 @@ function insertNediScanResults($res, $subnetId)
 		$query_string = "insert into `ipaddresses` (`ip_addr`,`subnetId`,`description`,`dns_name`,`mac`,`switch`,`port`,`lastSeen` ". $myFieldsInsert['query'] .") ";
 		$query_string .= "values ";
 		$query_string .= "('".transform2decimal($ip['ip_addr'])."', '$subnetId', '$ip[description]', '$ip[dns_name]', '$ip[mac]', '$ip[switch]', '$ip[ifname]', NOW() ". $myFieldsInsert['values'] .");";
-	    #$query[] = "insert into `ipaddresses` (`ip_addr`,`subnetId`,`description`,`dns_name`,`mac`,`switch`,`port`,`lastSeen`) values ('".transform2decimal($ip['ip_addr'])."', '$subnetId', '$ip[description]', '$ip[dns_name]', '$ip[mac]', '$ip[switch]', '$ip[ifname]', NOW())";
-#$query[] = $query_string . ";";
-#		$query = implode("\n", $query);
-		#print ("<div class='alert alert-info'>Query: $query_string</div>");
+ 
 		if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query_string</div>");print "<pre> result";print_r($query_string);print "</pre>";}
-		#print_r(htmlspecialchars ($query));
-		#$log = prepareLogFromArray ($ip);
+
 		try { $database->executeQuery($query_string); }
 		catch (Exception $e) { 
 			$error =  $e->getMessage(); 
-			#print "<div class='alert alert-danger'>$error</div>";
-			#updateLogTable ('Failed to add new IP request', $log."\n".$error, 2);
 			continue;
 		}
-		#updateLogTable ('New IP request added', $log, 1);
 		
 	}
-    # glue
-    
 
-    # execute query
-	
-    # default ok
     return true;
 }
 
@@ -928,7 +925,7 @@ function updateNediDevice($res,$sections = '')
 	}
 	# glue
     $query = implode("\n", $query);
-	#print ("<div class='alert alert-info'>Query:$query $k</div>\n");
+ 
 	//update
     try { $database->executeMultipleQuerries($query); }
     catch (Exception $e) { 
@@ -944,14 +941,9 @@ function insertNediVlan($name,$number,$description,$switch)
 {
     global $db;                                                                      # get variables from config file
     $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);    # open db
-    
-    # set queries
-  #  foreach($res as $vlan) {
-    	//escape strings
-    	#$ip['description'] = mysqli_real_escape_string($database, $ip['description']);
-    			
-	    $query[] = "insert into `vlans` (`name`,`number`, `description`, `switch`) values ('$name', '$number', '$description', '$switch'); ";
-    #}
+			
+	$query[] = "insert into `vlans` (`name`,`number`, `description`, `switch`) values ('$name', '$number', '$description', '$switch'); ";
+
     # glue
     $query = implode("\n", $query);
 
@@ -964,356 +956,6 @@ function insertNediVlan($name,$number,$description,$switch)
     }
     # default ok
     return true;
-}
-
-function IPSubnetCalc($intFn, $IPandMaskInput){
-        /* 
-        ' PROGRAM:
-        ' IP Subnet Calculator Originally by Marcus Mansfield
-        ' Converted into php and modified by frotthie
-        ' 
-        ' CHANGES:
-        '
-        ' INPUTS:
-        ' Input Expected xx.xx.xx.xx/yy
-        ' Where xx = decimal IPv4 Octet
-        '       yy = BitMask Value ( 0 - 32 ex.31 )
-        '
-        '
-        ' FUNCTIONS:
-        ' 1 - Return Subnet Mask in dotted decimal
-        ' 2 - Return Subnet Address in Dot. Dec.
-        ' 3 - Return Broadcast Address in Dot. Dec.
-        ' 4 - Return Lowest Client IP in Dot. Dec.
-        ' 5 - Return Highest Client IP in Dot. Dec.
-        ' 6 - Return Total Number of Host in the Network.
-        ' 7 - Inverted Subnet Mask Dot. Dec.
-        ' 8 - Returns network part after the input /
-        */
-        $IPAddress; $BitMask;
-        $IPOctet1; $IPOctet2; $IPOctet3; $IPOctet4;
-        $MaskOctet1; $MaskOctet2; $MaskOctet3; $MaskOctet4;
-        $Dot1; $Dot2; $Dot3; $Slash1;
-        $$IPNetwork1BIN; $IPNetwork2BIN; $IPNetwork3BIN; $IPNetwork4BIN;
-    
-        $Dot1 = strpos($IPandMaskInput, ".", 1);
-        $Dot2 = strpos($IPandMaskInput, ".", ($Dot1 + 1));
-        $Dot3 = strpos($IPandMaskInput, ".", ($Dot2 + 1));
-        $Slash1 = strpos($IPandMaskInput, "/", 1);
-            
-        //Check Basic Format
-        If ($Dot1 == 0 || $Dot2 == 0 || $Dot3 == 0 || $Slash1 == 0 ){
-            $IPSubnetCalc = "Incorrect Format";
-            return;
-            //exit;
-        }
-        
-        //Split IP into 8bit Octets
-        $IPOctet1 = substr($IPandMaskInput, 0, $Dot1);
-        $IPOctet2 = substr($IPandMaskInput, $Dot1 + 1, $Dot2 - $Dot1 - 1);
-        $IPOctet3 = substr($IPandMaskInput, $Dot2 + 1, $Dot3 - $Dot2 - 1);
-        $IPOctet4 = substr($IPandMaskInput, $Dot3 + 1, $Slash1 - $Dot3 - 1);
-        $BitMask =  substr($IPandMaskInput, $Slash1 + 1);
-        
-        If ( ($IPOctet1 > 255) || ($IPOctet2 > 255) || ($IPOctet3 > 255) || ($IPOctet4 > 255) ){
-            return "Value Error, Octet > 255";
-        }
-        If ( ($IPOctet1 < 0) || ($IPOctet2 < 0) || ($IPOctet3 < 0) || ($IPOctet4 < 0) ){
-            return "Value Error, Octet < 0";
-        }
-        If ( ($BitMask < 8) || ($BitMask > 32) || ($BitMask == 31) ){
-            return "Bitmask Error : Range 8 - 32, Excl. 31";
-        }
-        
-        switch ($intFn){
-            //' 1 - Return Subnet Mask in dotted decimal
-            case 1:
-                $BuildBIN = "";
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter < $BitMask){
-                        $BuildBIN = $BuildBIN . "1";
-                    } else {
-                        $BuildBIN = $BuildBIN . "0";
-                    }
-                }
-                //$BuildBIN = "1234567.1234567.1234567.1234567.";
-                $MaskOctet1 = bin2dec(substr($BuildBIN, 0, 8));
-                $MaskOctet2 = bin2dec(substr($BuildBIN, 8, 8));
-                $MaskOctet3 = bin2dec(substr($BuildBIN, 16, 8));
-                $MaskOctet4 = bin2dec(substr($BuildBIN, 24, 8));
-                
-                return $MaskOctet1 . "." . $MaskOctet2 . "." . $MaskOctet3 . "." . $MaskOctet4;
-            break;
-            //Subnet Dot. Dec.
-            case 2:
-                $BuildBIN = "";
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter < $BitMask){
-                        $BuildBIN = $BuildBIN . "1";
-                    } else {
-                        $BuildBIN = $BuildBIN . "0";
-                    }
-                }
-                //$BuildBIN = "1234567.1234567.1234567.1234567.";
-                $MaskOctet1BIN = substr($BuildBIN, 0, 8);
-                $MaskOctet2BIN = substr($BuildBIN, 8, 8);
-                $MaskOctet3BIN = substr($BuildBIN, 16, 8);
-                $MaskOctet4BIN = substr($BuildBIN, 24, 8);
-                
-                $IPOctet1BIN = dec2bin($IPOctet1, 8);
-                $IPOctet2BIN = dec2bin($IPOctet2, 8);
-                $IPOctet3BIN = dec2bin($IPOctet3, 8);
-                $IPOctet4BIN = dec2bin($IPOctet4, 8);
-                
-                 //AND Binary Expressions.
-                $IPNetwork1BIN = "";
-                $IPNetwork2BIN = "";
-                $IPNetwork3BIN = "";
-                $IPNetwork4BIN = "";
-                
-                For ($iCounter = 0 ;$iCounter < 8; $iCounter ++){
-                    If (substr($MaskOctet1BIN, $iCounter, 1) && substr($IPOctet1BIN, $iCounter, 1)) {
-                        $IPNetwork1BIN = $IPNetwork1BIN . "1";
-                    } else {
-                        $IPNetwork1BIN = $IPNetwork1BIN . "0";
-                    }
-                    
-                    If (substr($MaskOctet2BIN, $iCounter, 1) && substr($IPOctet2BIN, $iCounter, 1)) {
-                        $IPNetwork2BIN = $IPNetwork2BIN . "1";
-                    } else {
-                        $IPNetwork2BIN = $IPNetwork2BIN . "0";
-                    }
-                    
-                    If (substr($MaskOctet3BIN, $iCounter, 1) && substr($IPOctet3BIN, $iCounter, 1)) {
-                        $IPNetwork3BIN = $IPNetwork3BIN . "1";
-                    } else {
-                        $IPNetwork3BIN = $IPNetwork3BIN . "0";
-                    }
-                    
-                    If (substr($MaskOctet4BIN, $iCounter, 1) && substr($IPOctet4BIN, $iCounter, 1)) {
-                        $IPNetwork4BIN = $IPNetwork4BIN . "1";
-                    } else {
-                        $IPNetwork4BIN = $IPNetwork4BIN . "0";
-                    }
-                }
-                
-                $MaskOctet1 = bin2dec($IPNetwork1BIN);
-                $MaskOctet2 = bin2dec($IPNetwork2BIN);
-                $MaskOctet3 = bin2dec($IPNetwork3BIN);
-                $MaskOctet4 = bin2dec($IPNetwork4BIN);
-                return $MaskOctet1 . "." . $MaskOctet2 . "." . $MaskOctet3 . "." . $MaskOctet4;
-            break;
-            //Broadcast Dot. Dec.
-            case 3:
-                $BuildBIN = "";
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter < $BitMask){
-                        $BuildBIN = $BuildBIN . "1";
-                    } else {
-                        $BuildBIN = $BuildBIN . "0";
-                    }
-                }
-                //$BuildBIN = "1234567.1234567.1234567.1234567.";
-                $MaskOctet1BIN = substr($BuildBIN, 0, 8);
-                $MaskOctet2BIN = substr($BuildBIN, 8, 8);
-                $MaskOctet3BIN = substr($BuildBIN, 16, 8);
-                $MaskOctet4BIN = substr($BuildBIN, 24, 8);
-                
-                $IPOctet1BIN = dec2bin($IPOctet1, 8);
-                $IPOctet2BIN = dec2bin($IPOctet2, 8);
-                $IPOctet3BIN = dec2bin($IPOctet3, 8);
-                $IPOctet4BIN = dec2bin($IPOctet4, 8);
-                
-                //Create Full IP as Binary
-                $IPFullBIN = $IPOctet1BIN . $IPOctet2BIN . $IPOctet3BIN . $IPOctet4BIN;
-                $BuildBIN = "";
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter < $BitMask){
-                        $BuildBIN = $BuildBIN . substr($IPFullBIN, $iCounter, 1);
-                    } else {
-                        $BuildBIN = $BuildBIN . "1";
-                    }
-                }
-                
-                $MaskOctet1 = bin2dec(substr($BuildBIN, 0, 8));
-                $MaskOctet2 = bin2dec(substr($BuildBIN, 8, 8));
-                $MaskOctet3 = bin2dec(substr($BuildBIN, 16, 8));
-                $MaskOctet4 = bin2dec(substr($BuildBIN, 24, 8));
-                
-                return $MaskOctet1 . "." . $MaskOctet2 . "." . $MaskOctet3 . "." . $MaskOctet4;
-            break;
-            //Low IP Dot Dec
-            Case 4 :
-                $BuildBIN = "";
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter < $BitMask){
-                        $BuildBIN = $BuildBIN . "1";
-                    } else {
-                        $BuildBIN = $BuildBIN . "0";
-                    }
-                }
-                //$BuildBIN = "1234567.1234567.1234567.1234567.";
-                $MaskOctet1BIN = substr($BuildBIN, 0, 8);
-                $MaskOctet2BIN = substr($BuildBIN, 8, 8);
-                $MaskOctet3BIN = substr($BuildBIN, 16, 8);
-                $MaskOctet4BIN = substr($BuildBIN, 24, 8);
-                
-                $IPOctet1BIN = dec2bin($IPOctet1, 8);
-                $IPOctet2BIN = dec2bin($IPOctet2, 8);
-                $IPOctet3BIN = dec2bin($IPOctet3, 8);
-                $IPOctet4BIN = dec2bin($IPOctet4, 8);
-                
-                //AND Binary Expressions.
-                
-                For ($iCounter = 0 ;$iCounter < 8; $iCounter ++){
-                    If (substr($MaskOctet1BIN, $iCounter, 1) && substr($IPOctet1BIN, $iCounter, 1)) {
-                        $IPNetwork1BIN = $IPNetwork1BIN . "1";
-                    } else {
-                        $IPNetwork1BIN = $IPNetwork1BIN . "0";
-                    }
-                    
-                    If (substr($MaskOctet2BIN, $iCounter, 1) && substr($IPOctet2BIN, $iCounter, 1)) {
-                        $IPNetwork2BIN = $IPNetwork2BIN . "1";
-                    } else {
-                        $IPNetwork2BIN = $IPNetwork2BIN . "0";
-                    }
-                    
-                    If (substr($MaskOctet3BIN, $iCounter, 1) && substr($IPOctet3BIN, $iCounter, 1)) {
-                        $IPNetwork3BIN = $IPNetwork3BIN . "1";
-                    } else {
-                        $IPNetwork3BIN = $IPNetwork3BIN . "0";
-                    }
-                    
-                    If (substr($MaskOctet4BIN, $iCounter, 1) && substr($IPOctet4BIN, $iCounter, 1)) {
-                        $IPNetwork4BIN = $IPNetwork4BIN . "1";
-                    } else {
-                        If ($iCounter == 7 ){
-                            $IPNetwork4BIN = $IPNetwork4BIN . "1";
-                        }else{
-                            $IPNetwork4BIN = $IPNetwork4BIN . "0";
-                        }
-                    }
-                }
-                $MaskOctet1 = bin2dec($IPNetwork1BIN);
-                $MaskOctet2 = bin2dec($IPNetwork2BIN);
-                $MaskOctet3 = bin2dec($IPNetwork3BIN);
-                $MaskOctet4 = bin2dec($IPNetwork4BIN);
-                return $MaskOctet1 . "." . $MaskOctet2 . "." . $MaskOctet3 . "." . $MaskOctet4;
-            break;
-            //5 - Return Highest Client IP in Dot. Dec.
-            Case 5 :
-                $BuildBIN = "";
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter < $BitMask){
-                        $BuildBIN = $BuildBIN . "1";
-                    } else {
-                        $BuildBIN = $BuildBIN . "0";
-                    }
-                }
-                $MaskOctet1BIN = substr($BuildBIN, 0, 8);
-                $MaskOctet2BIN = substr($BuildBIN, 8, 8);
-                $MaskOctet3BIN = substr($BuildBIN, 16, 8);
-                $MaskOctet4BIN = substr($BuildBIN, 24, 8);
-                
-                $IPOctet1BIN = dec2bin($IPOctet1, 8);
-                $IPOctet2BIN = dec2bin($IPOctet2, 8);
-                $IPOctet3BIN = dec2bin($IPOctet3, 8);
-                $IPOctet4BIN = dec2bin($IPOctet4, 8);
-                
-            //Create Full IP as Binary
-                $IPFullBIN = $IPOctet1BIN . $IPOctet2BIN . $IPOctet3BIN . $IPOctet4BIN;
-                $BuildBIN = "";
-                
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter < $BitMask){
-                        $BuildBIN = $BuildBIN . substr($IPFullBIN, $iCounter, 1);
-                    } else {
-                        If ($iCounter == 31){
-                            $BuildBIN = $BuildBIN . "0";
-                        }else {
-                            $BuildBIN = $BuildBIN . "1";
-                        }
-                    }
-                }
-                
-                $MaskOctet1 = bin2dec(substr($BuildBIN, 0, 8));
-                $MaskOctet2 = bin2dec(substr($BuildBIN, 8, 8));
-                $MaskOctet3 = bin2dec(substr($BuildBIN, 16, 8));
-                $MaskOctet4 = bin2dec(substr($BuildBIN, 24, 8));
-                
-                return $MaskOctet1 . "." . $MaskOctet2 . "." . $MaskOctet3 . "."  . $MaskOctet4;
-            break;
-            // 6 - Return Total Number of Host in the Network.
-            Case 6 :
-                $iZeroCounter = 1;
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter > $BitMask){
-                        $iZeroCounter = $iZeroCounter + 1;
-                    }
-                }
-                return pow(2,$iZeroCounter) - 2;
-            break;
-            //Inverted Subnet Mask Dot. Dec.
-            Case 7 :
-                $BuildBIN = "";
-                for($iCounter = 0; $iCounter < 32; $iCounter++){
-                    If ($iCounter < $BitMask){
-                        $BuildBIN = $BuildBIN . "1";
-                    } else {
-                        $BuildBIN = $BuildBIN . "0";
-                    }
-                }
-                $MaskOctet1 = bin2dec(substr($BuildBIN, 0, 8));
-                $MaskOctet2 = bin2dec(substr($BuildBIN, 8, 8));
-                $MaskOctet3 = bin2dec(substr($BuildBIN, 16, 8));
-                $MaskOctet4 = bin2dec(substr($BuildBIN, 24, 8));
-                return (255 - $MaskOctet1) . "." . (255 - $MaskOctet2) . "." . (255 - $MaskOctet3) . "."  . (255 - $MaskOctet4);
-            break;
-            //Returns network part after the input /
-            Case 8 :
-                    $temp = str_replace("/", "", substr($IPandMaskInput, $Slash1));
-                    return $temp;
-            break;
-        }
-        //echo "$Dot1, $Dot2, $Dot3, $Slash1";
-        //echo "$IPOctet1, $IPOctet2, $IPOctet3, $IPOctet4, $BitMask ";
-        
-}
-function dec2bin($dec, $len=0){
-        $retVal = -1;
-        if($dec >= 0 && $dec <= 255){
-            for($b='',$r=$dec;$r>1;){
-                $n = floor($r/2); $b = ($r-$n*2).$b; $r = $n; // $r%2 is inaccurate when using bigger values (like 11.435.168.214)!
-            }
-            $retVal=($r%2).$b;
-            if(strlen($retVal) < $len){
-                $hulp = "";
-                for($i=strlen($retVal); $i<$len; $i++){
-                    $hulp .= "0";
-                }
-                $retVal = $hulp . $retVal;
-            }
-        }
-        return $retVal;
-}
-function bin2dec($binary, $output = false) {
-        $N = 0;
-        $o = "";
-        list ( $rhs, $lhs ) = explode ( ".", $binary );
-        $rhs = strrev ( $rhs );
-        for($i = 0; $i < strlen ( $rhs ); $i ++) {
-            $d = $rhs [$i] * pow ( 2, $i );
-            $N = $d + $N;
-            $o = ($d == 0) ? $o : $o . $d . " + ";
-        }
-        
-        for($i = 0; $i < strlen ( $lhs ); $i ++) {
-            $d = $lhs [$i] * pow ( 2, - ($i + 1) );
-            $N = $d + $N;
-            $o = ($d == 0) ? $o : $o . $d . " + ";
-        }
-        
-        return ($output) ? substr ( $o, 0, - 3 ) . " = " . $N : $N;
 }
 
 ?>
