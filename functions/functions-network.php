@@ -3375,6 +3375,30 @@ function FindUnusedIpAddresses ($ip1, $ip2, $type, $broadcast = 0, $checkType = 
     return $result;
 }
 
+function getIpAddrDetailsByip ($ip) 
+{
+    global $db;                                                                      # get variables from config file
+    /* set query, open db connection and fetch results */
+    $query    = 'select * from `ipaddresses` where `ip_addr` = "'. $ip .'";';
+    $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);  
+
+	#print ("<div class='alert alert-info'>Query:$query</div>");
+    /* execute */
+    try { $details = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    } 
+    
+    //we only fetch 1 field
+    $details  = $details[0];
+	//change IP address formatting to dotted(long)
+	$details['ip_addr'] = Transform2long( $details['ip_addr'] ); 
+	   
+    /* return result */
+    return($details);
+}
 
 /**
  * Get first available IP address

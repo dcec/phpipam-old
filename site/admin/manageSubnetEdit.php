@@ -259,7 +259,7 @@ else															{ $readonly = false; }
 	
 	}
 	else {
-		print '<tr style="display:none"><td colspan="8"><input type="hidden" name="allowRequests" value="'. $subnetDataOld['allowRequests'] .'"></td></tr>'. "\n";
+		print '<tr style="display:none"><td colspan="8"><input type="hidden" name="allowRequests" onclick="'.$settings['enableIPrequests'].'" value="'. $subnetDataOld['allowRequests'] .'"></td></tr>'. "\n";
 	}	
 
 		/* show names instead of ip address! */
@@ -433,7 +433,7 @@ else															{ $readonly = false; }
 	
 	#print "<hr>";
 	#print "<pre>";
-	#print_r($subnets1);
+	#print_r($settings);
 	#print "</pre>";
 	#print "<pre>";
 	#print_r($sites);

@@ -142,9 +142,9 @@ foreach($subnetIds as $subnetId) {
 						}
 						if(!$addresses[$k]['mac']){$update[$k]['mac'] = $result[$k]['macaddress'];$ip['mac'] = $result[$k]['macaddress'];}
 						if(!$addresses[$k]['port']){$update[$k]['port'] = $result[$k]['portname'];$ip['port'] = $result[$k]['portname'];}
-						if($addresses[$k]['description'] != $result[$k]['commments']){
-						$update[$k]['description'] = $result[$k]['commments'];$ip['description'] = $result[$k]['commments'];
-						print ("<div class='alert alert-info'>".$addresses[$k]['description'] ."!=". $result[$k]['commments']."</div>");
+						if($addresses[$k]['description'] != $result[$k]['commments'] && !preg_match("/Swap:/", $result[$k]['commments'])){
+							$update[$k]['description'] = $result[$k]['commments'];$ip['description'] = $result[$k]['commments'];
+							print ("<div class='alert alert-info'>".$addresses[$k]['description'] ."!=". $result[$k]['commments']."</div>");
 						}
 						#if(!$addresses[$k]['description']){$update[$k]['description'] = $result[$k]['manufacturername'];$ip['description'] = $result[$k]['manufacturername'];}commments
 						if($addresses[$k]['switch'] == 0 or ( $devices_id and !array_key_exists($addresses[$k]['switch'],$devices_id)) or ! $devices_id){

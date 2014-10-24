@@ -81,7 +81,7 @@ if($permission == "0")	{ die("<div class='alert alert-danger'>"._('You do not ha
 		</tr>
 		<tr>
 			<th><?php print _('Permission'); ?></th>
-			<td><?php print parsePermissions($permission); ?></td>
+			<td><?php print parsePermissions($permission). " ".$permission; ?></td>
 		</tr>
 		<tr>
 			<th><?php print _('Subnet Usage'); ?></th>
@@ -197,7 +197,7 @@ if($permission == "0")	{ die("<div class='alert alert-danger'>"._('You do not ha
 			$sp['editperm']  = false;		//edit permissions
 			
 			$sp['addip'] 	 = true;		//add ip address
-			$sp['scan']		 = true;		//scan subnet
+			$sp['scan']		 = false;		//scan subnet
 			$sp['changelog'] = true;		//changelog view
 			$sp['import'] 	 = true;		//import
 		}

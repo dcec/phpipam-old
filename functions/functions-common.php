@@ -84,14 +84,21 @@ function isUserAuthenticatedNoAjax ()
  * Check if user is admin
  */
 function checkAdmin ($die = true, $startSession = true) 
+
+
+
 {    
+
+	global $database;
+
     /* first get active username */
     if(!isset($_SESSION)) { session_start(); }
     $ipamusername = $_SESSION['ipamusername'];
     session_write_close();
     
     /* set check query and get result */
-    global $database;
+
+    
 
     /* Check connection */
     if ($database->connect_error) {
@@ -111,6 +118,10 @@ function checkAdmin ($die = true, $startSession = true)
         $error =  $e->getMessage(); 
         die ("<div class='alert alert-danger'>"._('Error').": $error</div>");
     } 
+
+
+
+
 
     
     /* return true if admin, else false */
@@ -147,10 +158,13 @@ function getActiveUserDetails ()
  */
 function getAllUsers ()
 {
+
     global $database; 
 
     /* set query, open db connection and fetch results */
     $query    = 'select * from users order by `role` asc, `real_name` asc;';
+
+
 
     /* execute */
     try { $details = $database->getArray( $query ); }
@@ -170,9 +184,12 @@ function getAllUsers ()
  */
 function getNumberOfUsers ()
 {
+
     global $database; 
     /* set query, open db connection and fetch results */
     $query    = 'select count(*) as count from users;';
+
+
 
     /* execute */
     try { $details = $database->getArray( $query ); }
@@ -192,9 +209,12 @@ function getNumberOfUsers ()
  */
 function getAllAdminUsers ()
 {
+
     global $database; 
     /* set query, open db connection and fetch results */
     $query    = 'select * from users where `role` = "Administrator" order by id desc;';
+
+
 
     /* execute */
     try { $details = $database->getArray( $query ); }
@@ -214,6 +234,7 @@ function getAllAdminUsers ()
  */
 function getUserDetailsById ($id)
 {
+
 	# check if already in cache
 	if($user = checkCache("user", $id)) {
 		return $user;
@@ -221,8 +242,11 @@ function getUserDetailsById ($id)
 	# query
 	else {
 	    global $database; 
+
 	    /* set query, open db connection and fetch results */
 	    $query    = 'select * from users where id = "'. $id .'";';
+
+
 	
 	    /* execute */
 	    try { $details = $database->getArray( $query ); }
@@ -230,12 +254,23 @@ function getUserDetailsById ($id)
 	        $error =  $e->getMessage(); 
 	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
 	        return false;
+
+
+
 	    } 
 	    
 	    # save cache - id and name
 	    writeCache("user", $id, $details[0]);
 	    writeCache("user", $details[0]['username'], $details[0]);
 	    
+
+
+
+
+
+
+
+
 	    /* return results */
 	    return($details[0]);
 	}
@@ -247,6 +282,7 @@ function getUserDetailsById ($id)
  */
 function getUserDetailsByName ($username)
 {
+
 	# check if already in cache
 	if($user = checkCache("user", $username)) {
 		return $user;
@@ -264,18 +300,30 @@ function getUserDetailsByName ($username)
 	    /* set query, open db connection and fetch results */
 	    $query    = 'select * from users where username LIKE "'. $username .'";';
 
+
 	    /* execute */
 	    try { $details = $database->getArray( $query ); }
 	    catch (Exception $e) { 
 	        $error =  $e->getMessage(); 
 	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
 	        return false;
+
+
 	    } 
+
 
 	    # save cache - id and name
 	    writeCache("user", $details[0]['id'], $details[0]);
 	    writeCache("user", $username, $details[0]);
 	    
+
+
+
+
+
+
+
+
 	    /* return results */
 	    return($details[0]);		
 	}
@@ -286,9 +334,12 @@ function getUserDetailsByName ($username)
  */
 function getUserLang ($username)
 {
+
     global $database; 
     /* set query, open db connection and fetch results */
     $query    = 'select `lang`,`l_id`,`l_code`,`l_name` from `users` as `u`,`lang` as `l` where `l_id` = `lang` and `username` = "'.$username.'";;';
+
+
 
     /* execute */
     try { $details = $database->getArray( $query ); }
@@ -308,9 +359,12 @@ function getUserLang ($username)
  */
 function getLanguages ()
 {
+
     global $database; 
     /* set query, open db connection and fetch results */
     $query    = 'select * from `lang`;';
+
+
 
     /* execute */
     try { $details = $database->getArray( $query ); }
@@ -330,6 +384,10 @@ function getLanguages ()
  */
 function getLangById ($id)
 {
+
+
+
+
 	# check cache
 	if($vtmp = checkCache("lang", $id)) {
 		return $vtmp;
@@ -337,6 +395,7 @@ function getLangById ($id)
 	else {
 
 	    global $database; 
+
 	    /* set query, open db connection and fetch results */
 	    $query    = 'select * from `lang` where `l_id` = "'.$id.'";';
 	
@@ -346,10 +405,21 @@ function getLangById ($id)
 	        $error =  $e->getMessage(); 
 	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
 	        return false;
+
+
+
 	    } 
 	    
 	    # save cache
 	    writeCache("lang", $id, $details[0]);
+
+
+
+
+
+
+
+
 	    /* return results */
 	    return($details[0]);
 	}
@@ -362,6 +432,8 @@ function getLangById ($id)
 function getAllWidgets($admin = false, $inactive = false)
 {
     global $database;
+
+
     
 	# inactive also - only for administration
 	if($inactive) 	{ $query = "select * from `widgets`; ";
@@ -396,6 +468,8 @@ function getAllWidgets($admin = false, $inactive = false)
 function getWidgetById($wid)
 {
     global $database;
+
+
 	# query
 	$query = "select * from `widgets` where `wid` = '$wid'; ";
 
@@ -418,6 +492,8 @@ function getWidgetById($wid)
 function getWidgetByFile($wfile)
 {
     global $database;
+
+
 	# query
 	$query = "select * from `widgets` where `wfile` = '$wfile'; ";
 
@@ -476,7 +552,10 @@ function getFavouriteSubnets()
  */
 function getUserFavouriteSubnets($subnetIds)
 {
+
+
     global $database; 
+
 
 	# get details for each id
 	foreach($subnetIds as $id) {
@@ -531,7 +610,10 @@ function isSubnetFavourite($subnetId)
  */
 function editFavourite($post)
 {
+
+
     global $database; 
+
 
     # get user details and favourites
     $user = getActiveUserDetails();
@@ -592,9 +674,12 @@ function getTranslationVersion ($code)
  */
 function getFullFieldData($table, $field)
 {
+
     global $database; 
     /* set query, open db connection and fetch results */
     $query = "show full columns from `$table` where `Field` = '$field';";
+
+
 
     /* execute */
     try { $details = $database->getArray( $query ); }
@@ -795,13 +880,15 @@ function checkSitePermission ($siteId)
  */
 function getAllSettings()
 {
+
 	global $settings;
+
 	# check if it already exists
 	if(isset($settings)) {
-		return $settings;
+		return($settings[0]);
 	} 
-	else {
 
+	else {
 	    global $db;
 		global $database;
 	
@@ -825,6 +912,7 @@ function getAllSettings()
 		    /* first update request */
 		    $query    = 'select * from settings where id = 1';
 		    $settings = $database->getArray($query); 
+
 	  
 			/* return settings */
 			return($settings[0]);
@@ -843,6 +931,7 @@ function getAllSettings()
 function getAllMailSettings()
 {
     global $db;                                                                      # get variables from config file
+
     global $database; 
 
     /* first check if table settings exists */
@@ -1484,6 +1573,7 @@ function getAllParents ($subnetId)
 }
 
 
+
 /**
  *	get whole tree path for subnetId - from parent all slaves
  *
@@ -1493,19 +1583,42 @@ $removeSlaves = array();
 
 function getAllSlaves ($subnetId, $multi = false) 
 {
+
+
+
+
 	# check cache
 	if($vtmp = checkCache("allslaves", $subnetId."_$multi")) {
 		return $vtmp;
 	}
 	else {
 
+
+
+
+
 		global $removeSlaves;
 		$end = false;			# breaks while
 		
+
+
+
+
+
+
+
+
+
+
+
 		$removeSlaves[] = $subnetId;		# first
+
+
+
 	
 		# db
 		global $database; 
+
 		
 		while($end == false) {
 			
@@ -1519,6 +1632,8 @@ function getAllSlaves ($subnetId, $multi = false)
 	        	return false;
 	        }
 			
+
+
 			# we have more slaves
 			if(sizeof($slaves2) != 0) {
 				# recursive
@@ -1533,10 +1648,16 @@ function getAllSlaves ($subnetId, $multi = false)
 				$end = true;
 			}
 		}
+
+
+
 		
 		# save cache
 		if(sizeof($removeSlaves)>0) {
 			writeCache("allslaves", $subnetId."_$multi", $removeSlaves);
+
+
+
 		}
 	}
 }
@@ -1556,7 +1677,10 @@ function getAllSiteSlaves ($siteId, $multi = false)
 	$removeSlaves[] = $siteId;		# first
 
 	# db
+
+
 	global $database; 
+
 	
 	while($end == false) {
 		
@@ -1569,6 +1693,8 @@ function getAllSiteSlaves ($siteId, $multi = false)
         	print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
         	return false;
         }
+
+
 		# we have more slaves
 		if(sizeof($slaves2) != 0) {
 			# recursive
