@@ -1,3 +1,4 @@
+<?php if(!$settings){$settings = getAllSettings();} ?>
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
 
 

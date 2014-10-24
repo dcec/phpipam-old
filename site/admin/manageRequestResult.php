@@ -64,11 +64,11 @@ else {
 	
 	if(!acceptIPrequest($request)) {
 		die('<div class="alert alert alert-danger">'._('Cannot confirm IP address').'!</div>');
-		updateLogTable ('Cannot confirm IP address!', 'Cannot accept IP request for request id '. Transform2long($request['requestId']) .'!', 2);
+		#updateLogTable ('Cannot confirm IP address!', 'Cannot accept IP request for request id '. Transform2long($request['requestId']) .'!', 2);
 	}
 	else {
 		print '<div class="alert alert-success">'._('IP address request confirmed and added to database').'!</div>';
-		updateLogTable ('IP address request confirmed and added to database!', 'IP request id '. $request['requestId'] .' ('. Transform2long($request['ip_addr']) .') has been accepted!', 0);
+		#updateLogTable ('IP address request confirmed and added to database!', 'IP request id '. $request['requestId'] .' ('. Transform2long($request['ip_addr']) .') has been accepted!', 0);
 	}
 }
 

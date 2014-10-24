@@ -1091,6 +1091,14 @@ function acceptIPrequest($request)
     /* first update request */
     $query  = 'update requests set `processed` = "1", `accepted` = "1", `adminComment` = "'. $request['adminComment'] .'" where `id` = "'. $request['requestId'] .'";' . "\n";
 
+	try { $database->executeQuery( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+    	updateLogTable ('Failed to update requests - error:'.$error, 2);
+        return false;
+    }
+	
 	/* We need to get custom fields! */
 	$myFields = getCustomFields('ipaddresses');
 	$myFieldsInsert['query']  = '';
@@ -1105,7 +1113,7 @@ function acceptIPrequest($request)
 	}
 
 	/* insert */
-	$query .= "insert into `ipaddresses` ";
+	$query = "insert into `ipaddresses` ";
 	$query .= "(`subnetId`,`description`,`ip_addr`, `dns_name`,`mac`, `owner`, `state`, `switch`, `port`, `note`, `requestId` ". $myFieldsInsert['query'] .") ";
 	$query .= "values ";
 	$query .= "('". $request['subnetId'] ."', '". $request['description'] ."', '".$request['ip_addr']."', ". "\n"; 
@@ -1118,7 +1126,7 @@ function acceptIPrequest($request)
 	}
 
     /* execute */
-    try { $database->executeMultipleQuerries( $query ); }
+    try { $database->executeQuery( $query ); }
     catch (Exception $e) { 
         $error =  $e->getMessage(); 
         print ("<div class='alert alert-danger'>"._('Error').": $error</div>");

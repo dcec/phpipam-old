@@ -3954,20 +3954,31 @@ function getChangelogEntries($ctype, $coid, $long = false, $limit = 50)
 	if($ctype=="ip_addr")	$ctypeTable = "ipaddresses";
 	else					$ctypeTable = $ctype;
     
+	#if($filter) {
+	#	if(preg_match('/^not /', $filter)){
+	#		$filter = " and real_name != '".str_replace("not ","",$filter)."'";
+	#	}else{	
+	#		$filter = " and real_name = '$filter'";
+	#	}	
+	#}
+	
+	if(!checkAdmin(false)){$filter = " and real_name != 'Crontab'";}
+	
     # query
     if($long) {
 	    $query = "select * 
 					from `changelog` as `c`, `users` as `u`, `$ctypeTable` as `o`
 					where `c`.`cuser` = `u`.`id` and `c`.`coid`=`o`.`id`
-					and `c`.`coid` = '$coid' and `c`.`ctype` = '$ctype' order by `c`.`cid` desc limit $limit;";   
+					and `c`.`coid` = '$coid' and `c`.`ctype` = '$ctype' $filter order by `c`.`cid` desc limit $limit;";   
 	} else {
 	    $query = "select * 
 					from `changelog` as `c`, `users` as `u`
 					where `c`.`cuser` = `u`.`id`
-					and `c`.`coid` = '$coid' and `c`.`ctype` = '$ctype' order by `c`.`cid` desc limit $limit;";          
+					and `c`.`coid` = '$coid' and `c`.`ctype` = '$ctype' $filter order by `c`.`cid` desc limit $limit;";          
 	}
 	
     # execute
+	#print ("<div class='alert alert-danger'>"._('Error').": $query</div>");
     try { $res = $database->getArray( $query ); }
     catch (Exception $e) { 
         $error =  $e->getMessage(); 
@@ -4103,11 +4114,11 @@ function getAllChangelogs($filter = false, $expr, $limit = 100)
 	    $query = "select * from (
 					select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`ip_addr`,'mask',`sectionId`,`subnetId`,`ip`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
 					from `changelog` as `c`, `users` as `u`,`ipaddresses` as `ip`,`subnets` as `su`
-					where `c`.`ctype` = 'ip_addr' and `c`.`cuser` = `u`.`id` and `c`.`coid`=`ip`.`id` and `ip`.`subnetId` = `su`.`id`
+					where `c`.`ctype` = 'ip_addr' and `c`.`cuser` = `u`.`id` and `c`.`coid`=`ip`.`id` and `ip`.`subnetId` = `su`.`id` limit $limit
 					union all
 					select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`subnet`,`mask`,`sectionId`,'subnetId',`su`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
 					from `changelog` as `c`, `users` as `u`,`subnets` as `su`
-					where `c`.`ctype` = 'subnet' and  `c`.`cuser` = `u`.`id` and `c`.`coid`=`su`.`id`	
+					where `c`.`ctype` = 'subnet' and  `c`.`cuser` = `u`.`id` and `c`.`coid`=`su`.`id` limit $limit	
 				) as `ips` order by `cid` desc limit $limit;";    
 	}    
 	//filter

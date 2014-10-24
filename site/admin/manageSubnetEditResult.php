@@ -110,7 +110,6 @@ else if ($_POST['action'] == "add") {
  * Check if slave is under master
  */
 else if ($_POST['action'] == "edit") {
-	
     if($section['strictMode']==1 && !$isFolder) {
     	/* verify that nested subnet is inside root subnet */
     	if ( (!$overlap = verifySubnetNesting($_POST['masterSubnetId'], $_POST['subnet'])) && $_POST['masterSubnetId']!=0) {
