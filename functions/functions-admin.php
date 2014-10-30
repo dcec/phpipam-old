@@ -1341,6 +1341,7 @@ function updateDeviceDetails($device)
     /* set querry based on action */
     if($device['action'] == "add") {
 
+		$device['description'] = mysqli_real_escape_string($database, $device['description']);
         # custom fields
         $myFields = getCustomFields('devices');
         $myFieldsInsert['query']  = '';
@@ -1366,7 +1367,8 @@ function updateDeviceDetails($device)
    		$query .= ' "'. $device['model'] .'", "'. $device['version'] .'", "'. $device['description'] .'", "'. $device['sections'] .'" '. $myFieldsInsert['values'] .');'. "\n";
     }
     else if($device['action'] == "edit") {
-
+		
+		$device['description'] = mysqli_real_escape_string($database, $device['description']);
        # custom fields
         $myFields = getCustomFields('devices');
         $myFieldsInsert['query']  = '';

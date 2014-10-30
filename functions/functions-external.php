@@ -942,7 +942,7 @@ function insertNediVlan($name,$number,$description,$switch)
     global $db;                                                                      # get variables from config file
     $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);    # open db
 			
-	$query[] = "insert into `vlans` (`name`,`number`, `description`, `switch`) values ('$name', '$number', '$description', '$switch'); ";
+	$query[] = "insert into `vlans` (`name`,`number`, `description`, `switch`, `editDate`) values ('$name', '$number', '$description', '$switch', Now()); ";
 
     # glue
     $query = implode("\n", $query);
