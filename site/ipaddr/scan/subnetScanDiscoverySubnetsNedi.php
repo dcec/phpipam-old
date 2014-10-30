@@ -68,16 +68,16 @@ if($subnets){
 					if($result[$k]['pvid']>0){
 						if($nedi_vlans[$result[$k]['pvid']]['vlanname']){
 							insertNediVlan($nedi_vlans[$result[$k]['pvid']]['vlanname'],$result[$k]['pvid'],'',$switch);
-							if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans: ".$result[$k]['pvid']." ".$nedi_vlans[$result[$k]['pvid']]['vlanname']."</div>";}
+							if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans1: ".$result[$k]['pvid']." ".$nedi_vlans[$result[$k]['pvid']]['vlanname']." ".$switch."</div>";}
 						}else{
 							$nedi_vlans = getVansFromNedi($result[$k]['pvid'],'',$result[$k]['ifname']);
 							if ($nedi_vlans) {
 								insertNediVlan($result[$k]['ifname'],$result[$k]['pvid'],'',$switch);
-								if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans: ".$result[$k]['pvid']." ".$result[$k]['ifname']."</div>";}
+								if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans2: ".$result[$k]['pvid']." ".$result[$k]['ifname']." ".$switch."</div>";}
 							}else{
 								$nedi_vlans = getVansFromNedi($r['pvid']);
 								insertNediVlan($result[$k]['ifname'],$result[$k]['pvid'],'',$switch);
-								if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans: ".$result[$k]['pvid']." ".$result[$k]['ifname']."</div>";}
+								if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans3: ".$result[$k]['pvid']." ".$result[$k]['ifname']." ".$switch."</div>";}
 							}
 						}
 					}
@@ -175,6 +175,7 @@ print "<tr>";
 print " <th>"._("Subnet")."</th>";
 print " <th>"._("Mask")."</th>";
 print " <th>"._("Description")."</th>";
+print " <th>"._("Device")."</th>";
 print " <th></th>";
 print "</tr>";
 // alive
@@ -199,20 +200,23 @@ print " <input type='hidden' name='description$m' value=".$vlan['ifname'].">";
 #print " <input type='hidden' name='mac$m' value=".rtrim(chunk_split(substr($vlan['ifmac'],0,12),2,":"),":").">";
 print " <input type='hidden' name='vlanId$m' value=".$vlan['vlan'].">";
 print " <input type='hidden' name='gateway$m' value=".transform2long($vlan['ifip']).">";
-print " <input type='hidden' name='device$m' value=".$vlan['device'].">";
 print "</td>";
 //hostname
 print "<td>";
 print " <input type='text' class='form-control input-sm' name='port$m' value='".$vlan['ifname']."'>";
 print "</td>";
+print "<td>";
+print " <input type='text' class='form-control input-sm' name='device$m' value=".$vlan['device'].">";
+print "</td>";
 //remove button
 print "<td><a href='' class='btn btn-xs btn-danger resultRemove' data-target='result$m'><i class='fa fa-times'></i></a></td>";
 print "</tr>";
+
 $m++;
 }
 //result
 print "<tr>";
-print " <td colspan='4'>";
+print " <td colspan='5'>";
 print "<div id='subnetScanAddResult'></div>";
 print " </td>";
 print "</tr>";	
