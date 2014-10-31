@@ -56,6 +56,7 @@ if($subnets){
 				$update['action'] = "edit";
 				$update['subnetId'] = $a['id'];
 				$update['sectionIdNew'] = $a['sectionId'];
+				$update['vrfIdOld'] = $a['vrfId'];
 
 				if($subnets[$k]['description'] == "" && $subnets[$k]['description'] != $result[$k]['ifname']){$up = 1;$update['description'] = $result[$k]['ifname'];}		
 				if($subnets[$k]['Gateway'] != transform2long($result[$k]['ifip'])){$up = 1;$update['Gateway'] = transform2long($result[$k]['ifip']);}
@@ -83,8 +84,18 @@ if($subnets){
 					}
 					$vlans = getVansbyIndex();
 				}
-				if($subnets[$k]['vlanId'] != $vlans[$result[$k]['pvid']][$switch]['vlanId']){$up = 1;$update['vlanId'] = $vlans[$result[$k]['pvid']][$switch]['vlanId'];}
+				if($subnets[$k]['vlanId'] != $vlans[$result[$k]['pvid']][$switch]['vlanId'] && $vlans[$result[$k]['pvid']][$switch]['vlanId'] != ""){$up = 1;$update['vlanId'] = $vlans[$result[$k]['pvid']][$switch]['vlanId'];}
 				if($up == 1){
+					$query = setModifySubnetDetailsQuery ($update);
+					if($_POST['debug']==1) {
+						print "<hr>";
+						print "<pre>";
+						print_r($subnets[$k]);
+						print "</pre>";
+						print "<pre>";
+						print_r($query);
+						print "</pre>";
+					}
 					modifySubnetDetails ($update);
 				}
 				unset($result[$k]);

@@ -746,7 +746,40 @@ function searchVLANs ($searchterm)
     return $search;
 }
 
+/**
+ * Search VLANS
+ */
+function searchSevices ($searchterm)
+{
 
+
+    global $database;                                                                      
+
+    # get custom device fields
+    $myFields = getCustomFields('devices');
+    $custom  = '';
+
+    if(sizeof($myFields) > 0) {
+		/* set inserts for custom */
+		foreach($myFields as $myField) {			
+			$custom  .= ' or `'.$myField['name'].'` like "%'.$searchterm.'%" ';
+		}
+	}
+	    	unset($res['id'], $res['hostname'], $res['ip_addr'], $res['type'], $res['vendor'], $res['model'], $res['version'], $res['description'], $res['sections'], $res['editDate'], $res['siteId']);
+    /* set query */    
+	$query = 'select * from `devices` LEFT JOIN `deviceTypes` ON `devices`.`type` = `deviceTypes`.`tid` where `hostname` like "%'. $searchterm .'%" or `ip_addr` like "%'. $searchterm .'%" or `vendor` like "%'. $searchterm .'%"';
+	$query .= ' or `model` like "%'. $searchterm .'%" or `version` like "%'. $searchterm .'%" or `description` like "%'. $searchterm .'%"  or `tname` like "%'. $searchterm .'%" '.$custom.';';
+    /* execute */
+    try { $search = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    } 
+    
+    /* return result */
+    return $search;
+}
 
 /**	
  * Reformat incomplete IPv4 address to decimal for search!

@@ -104,7 +104,22 @@ else
 	
 	print "</div>";						# end subnets overlay
 
-	
+	# add new subnet
+	$sectionPermission = checkSectionPermission ($sectionId);
+	if($sectionPermission == 3) {
+		print "<div class='action'>";
+		if(isset($_REQUEST['subnetId'])) {
+		print "	<button class='btn btn-xs btn-default pull-left' id='hideSubnets' rel='tooltip' title='"._('Hide subnet list')."' data-placement='right'><i class='fa fa-gray fa-sm fa-chevron-left'></i></button>";
+		}
+		print "	<span>"._('Add new');
+		print "	<div class='btn-group'>";
+		print "	 <button id='add_subnet' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Add new subnet to')." $sectionName[name]'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='add'><i class='fa fa-sm fa-plus'></i></button>";
+		if (checkAdmin(false)) {print "	 <button id='scan_subnet' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Scan new subnet')."'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='scan'><i class='fa fa-sm fa-asterisk'></i></button>";}
+		print "	 <button id='add_folder' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Add new folder to')." $sectionName[name]'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='add'><i class='fa fa-sm fa-folder'></i></button>";
+		print "	</div>";
+		print "	</span>";
+		print "</div>";
+	}
 	/* print VLANs */
 	if($sectionName['showVLAN'] == 1) {
 		$vlans = getAllVlansInSection ($sectionId);
@@ -137,21 +152,4 @@ else
 			print "</div>";	
 		} 
 	}
-}
-
-# add new subnet
-$sectionPermission = checkSectionPermission ($sectionId);
-if($sectionPermission == 3) {
-	print "<div class='action'>";
-	if(isset($_REQUEST['subnetId'])) {
-	print "	<button class='btn btn-xs btn-default pull-left' id='hideSubnets' rel='tooltip' title='"._('Hide subnet list')."' data-placement='right'><i class='fa fa-gray fa-sm fa-chevron-left'></i></button>";
-	}
-	print "	<span>"._('Add new');
-	print "	<div class='btn-group'>";
-	print "	 <button id='add_subnet' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Add new subnet to')." $sectionName[name]'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='add'><i class='fa fa-sm fa-plus'></i></button>";
-	if (checkAdmin(false)) {print "	 <button id='scan_subnet' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Scan new subnet')."'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='scan'><i class='fa fa-sm fa-asterisk'></i></button>";}
-	print "	 <button id='add_folder' class='btn btn-xs btn-default btn-success'  rel='tooltip' data-container='body'  data-placement='top' title='"._('Add new folder to')." $sectionName[name]'  data-subnetId='' data-sectionId='$sectionName[id]' data-action='add'><i class='fa fa-sm fa-folder'></i></button>";
-	print "	</div>";
-	print "	</span>";
-	print "</div>";
 }

@@ -49,6 +49,8 @@ $subnets = searchSubnets ($searchTerm, $searchTermEdited);
 # check also VLANS!
 $vlans = searchVLANs ($searchTerm);
 
+$devices = searchDevices ($searchTerm);
+
 # get all custom fields 
 $myFields = getCustomFields('ipaddresses');
 

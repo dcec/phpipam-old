@@ -13,7 +13,7 @@
 	</td>
 	<?php
 	/* hide donations button */
-	if($settings['donate'] == 0) {
+	if($settings['donate'] == 0 and $pippo) {
 
 print '	<td id="donate" class="hidden-xs hidden-sm" rel="tooltip" data-html="true" title="'._('phpIPAM is free, open-source project').'.<br>'._('If you like the software you can donate by clicking this button to support further development').'.">
 	<input type="hidden" name="cmd" value="_s-xclick">
