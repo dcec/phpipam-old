@@ -1254,6 +1254,17 @@ table#manageSubnets .structure {
 table#manageSubnets .structure i {
 	
 }
+
+table#siteManagement .structure {
+	background: url("../../css/images/sn-bg.png")  0px 7px;	
+	padding-top: 8px;
+	padding-bottom: 8px;
+	
+}
+table#siteManagement .structure i {
+	
+}
+
 table#manageSubnets tbody[id*="content-subnet-"] {
 /* 	display: none; */
 }

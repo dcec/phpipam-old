@@ -424,3 +424,52 @@ else {
 ?>
 
 </table>
+<!-- search result table -->
+<br>
+<h4><?php print _('Search results (Devices)');?>:</h4>
+<hr>
+
+<table class="vlanSearch table table-striped table-condensed table-top">
+
+<!-- headers -->
+<tr id="searchHeader">
+	<th><?php print _('Hostname');?></th>
+	<th><?php print _('IP address');?></th>
+	<th><?php print _('Description');?></th>
+	<th><?php print _('Type');?></th>
+	<th><?php print _('Vendor');?></th>
+</tr>
+<?php
+if(sizeof($devices) == 0) {
+}
+else {
+
+	foreach($devices as $device) {
+
+
+			# check permission
+		#	$permission = checkSubnetPermission ($subnet['id']);
+		#	if($permission != "0") {
+			
+				/* get section details */
+				#$section = getSectionDetailsById ($subnet['sectionId']);	
+
+
+
+
+					print ' <td><dd><a href="tools/devices/hosts/'.$device['id'].'/">'. $device['hostname']         .'</a></dd></td>' . "\n";
+					print ' <td><dd>'. $device['ip_addr']           .'</dd></td>' . "\n";
+					print ' <td><dd>'. $device['description'] .'</dd></td>' . "\n";			
+
+
+					print ' <td><dd>'. $device['tname']           .'</dd></td>' . "\n";
+					print ' <td><dd>'. $device['vendor'] .'</dd></td>' . "\n";	
+
+    		    print '</tr>' . "\n";
+    		#}
+
+
+    }
+}
+?>
+</table>

@@ -1257,8 +1257,6 @@ function getSubnetDetails ($subnetId)
  */
 function getSubnetDetailsById ($id)
 {
-
-
 	# for changelog
 	if($id=="subnetId") {
 		return false;
@@ -1273,20 +1271,13 @@ function getSubnetDetailsById ($id)
 	    global $database;                                                                      
 	    /* set query */
 	    $query         = 'select * from `subnets` where `id` = "'. $id .'";';
-
-
-		
 	    /* execute */
 	    try { $SubnetDetails = $database->getArray( $query ); }
 	    catch (Exception $e) { 
 	        $error =  $e->getMessage(); 
 	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
 	        return false;
-
-
-
 	    } 
-		
 	    /* return subnet details - only 1st field! We cannot do getRow because we need associative array */
 	    if(sizeof($SubnetDetails) > 0) { 
 	    	writeCache('subnet', $id, $SubnetDetails[0]);
@@ -1301,24 +1292,36 @@ function getSubnetDetailsById ($id)
  */
 function getSiteDetailsById ($siteId)
 {
-    global $database;
+	# for changelog
+	if($id=="subnetId") {
+		return false;
+	}
+	# check if already in cache
+	elseif($vtmp = checkCache("site", $id)) {
+		return $vtmp;
+	}
+	# query
+	else {
 	
-    /* set query, open db connection and fetch results */
-    $query         = 'select * from `sites` where `siteId` = "'. $siteId .'";';
-
-    /* execute */
-	#print ("<div class='alert alert-info'>: $error</div>");
-    try { $SubnetDetails = $database->getArray( $query ); }
-    catch (Exception $e) { 
-        $error =  $e->getMessage(); 
-        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
-        return false;
-    } 
-    $database->close();
-
-    /* return subnet details - only 1st field! We cannot do getRow because we need associative array */
-    if(sizeof($SubnetDetails) > 0) { return($SubnetDetails[0]); }
+	    global $database;                                                                      
+	    /* set query */
+	    $query         = 'select * from `sites` where `siteId` = "'. $siteId .'";';
+	    /* execute */
+	    try { $SiteDetails = $database->getArray( $query ); }
+	    catch (Exception $e) { 
+	        $error =  $e->getMessage(); 
+	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+	        return false;
+	    } 
+	    /* return subnet details - only 1st field! We cannot do getRow because we need associative array */
+	    if(sizeof($SiteDetails) > 0) { 
+	    	writeCache('site', $siteId, $SiteDetails[0]);
+	    	return($SiteDetails[0]); 
+	    }
+    	
+	}
 }
+
 
 /**
  * Calculate subnet details
@@ -1565,11 +1568,6 @@ function verifyNestedSubnetOverlapping ($sectionId, $subnetNew, $vrfId, $masterS
  */
 function subnetContainsSlaves($subnetId)
 {
-
-
-
-
-
 	# we need new temp variable for empties
 	$subnetIdtmp = $subnetId;
 	if(strlen($subnetIdtmp)==0)	{ $subnetIdtmp="root"; }
@@ -1579,14 +1577,6 @@ function subnetContainsSlaves($subnetId)
 	}
 	# query
 	else {
-
-
-
-
-
-
-
-
 	    global $database;                                                                     
 	    
 	    /* get all ip addresses in subnet */
@@ -1607,31 +1597,39 @@ function subnetContainsSlaves($subnetId)
 }
 
 /**
- * Check if site contains slaves
+ * Check if subnet contains slaves
  */
-function siteContainsSlaves($siteId)
+function siteContainsSlaves($subnetId)
 {
-    global $database; 
-    
-    /* get all ip addresses in subnet */
-    $query 		  = 'SELECT count(*) from sites where `masterSiteId` = "'. $siteId .'";';    
-
-    /* execute */
-    try { $slaveSites = $database->getArray( $query ); }
-    catch (Exception $e) { 
-        $error =  $e->getMessage(); 
-        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
-        return false;
-    }    
-
-
-
-
+	# we need new temp variable for empties
+	$subnetIdtmp = $subnetId;
+	if(strlen($subnetIdtmp)==0)	{ $subnetIdtmp="root"; }
+	# check if already in cache
+	if($vtmp = checkCache("sitecontainsslaves", $subnetIdtmp)) {
+		return $vtmp;
+	}
+	# query
+	else {
+	    global $database;                                                                     
+	    
+	    /* get all ip addresses in subnet */
+	    $query 		  = 'SELECT count(*) from `sites` where `masterSiteId` = "'. $subnetId .'";';    
 	
-	if($slaveSites[0]['count(*)']) { return true; }
-	else 							 { return false; }
-
+	    /* execute */
+	    try { $slaveSites = $database->getArray( $query ); }
+	    catch (Exception $e) { 
+	        $error =  $e->getMessage(); 
+	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+	        return false;
+	    }
+		
+		if($slaveSites[0]['count(*)']) { writeCache("sitecontainsslaves", $subnetIdtmp, true);	return true; }
+		else 							 { writeCache("sitecontainsslaves", $subnetIdtmp, false);	return false; }
+	
+	}
 }
+
+
 
 /**
  * Verify IPv4 subnet overlapping
