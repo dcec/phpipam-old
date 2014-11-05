@@ -56,9 +56,9 @@ function getDevicesAddressFromGlpi ($min = NULL,$max = NULL,$index,$days = 30)
 	$days = (time() - ($days * 86400));
 	
 	if($min and $max){
-		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'" and UNIX_TIMESTAMP(last_ocs_conn) >'.$days.';';
+		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'" AND (UNIX_TIMESTAMP( last_ocs_conn ) > '.$days.' OR sorgente = "GLPI");';
 	}else{
-		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) > "0" and UNIX_TIMESTAMP(last_ocs_conn) >'.$days.' group by hostname;';
+		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) > "0" AND (UNIX_TIMESTAMP( last_ocs_conn ) > '.$days.' OR sorgente = "GLPI") group by hostname;';
 	}
 	/* execute */
 	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}

@@ -148,6 +148,7 @@ foreach($subnetIds as $subnetId) {
 						}
 						#if(!$addresses[$k]['description']){$update[$k]['description'] = $result[$k]['manufacturername'];$ip['description'] = $result[$k]['manufacturername'];}commments
 						if($addresses[$k]['switch'] == 0 or ( $devices_id and !array_key_exists($addresses[$k]['switch'],$devices_id)) or ! $devices_id){
+							print "<div class='alert alert-info'>Switch not exist:".$addresses[$k]['switch']."</div>";
 							if ($result[$k]['hostname'] && (( $devices and !array_key_exists($result[$k]['hostname'], $devices)) or ! $devices)) {
 								print "<div class='alert alert-info'>Switch not exist:".$result[$k]['hostname']."</div>";
 								#$device = getDevicesFromNedi ('device',$result[$k]['hostname']);
