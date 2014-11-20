@@ -43,7 +43,8 @@ $ipCalcResults = calculateIpCalcResult ($cidr);
         
         $m++;
     }
-    
+    $sections = fetchSections ();
+
     ?>
     
     <!-- add subnet button -->
@@ -64,9 +65,11 @@ $ipCalcResults = calculateIpCalcResult ($cidr);
 		<?php
 			//get all sections
 			$sections = fetchSections ();
-			
 			foreach($sections as $section) {
-				print '<option value="'. $section['id'] .'">'. $section['name'] .'</option>';
+				$perm = checkSectionPermission ($section['id']);
+				if($perm > 1 ) {
+					print '<option value="'. $section['id'] .'">'. $section['name'] .'</option>';
+				}
 			}
 		?>
 		</select>

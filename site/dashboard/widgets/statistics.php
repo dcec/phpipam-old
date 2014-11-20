@@ -21,6 +21,8 @@ $IPv6Count = getNuberOfIPv6Addresses();
 
 /* get All users */
 $userCount = getNumberOfUsers();
+
+$LoggedinUser = getLoggedInUser();
 ?>
 
 
@@ -55,6 +57,12 @@ $userCount = getNumberOfUsers();
 	<tr>
 		<td class="title"><?php print _('Number of users'); ?></td>
 		<td><?php print $userCount; ?></td>
+	</tr>
+	
+	<!-- All users - only for admin! -->
+	<tr>
+		<td class="title"><?php print _('Logged in users'); ?></td>
+		<td><?php print $LoggedinUser; ?></td>
 	</tr>
 	
 </table>

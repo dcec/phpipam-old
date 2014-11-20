@@ -66,4 +66,7 @@ include_once('functions-admin.php');
 /* @upgrade functions ------------------- */
 include_once('functions-upgrade.php');
 
+/* @admin functions --------------------- */
+include_once('functions-external.php');
+
 ?>

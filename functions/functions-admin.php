@@ -1362,9 +1362,9 @@ function updateDeviceDetails($device)
 		}
 
     	$query  = 'insert into `devices` '. "\n";
-    	$query .= '(`hostname`,`ip_addr`, `type`, `vendor`,`model`,`version`,`description`,`sections` '.$myFieldsInsert['query'].') values '. "\n";
+    	$query .= '(`hostname`,`ip_addr`, `type`, `vendor`,`model`,`version`,`description`,`sections`,`siteId` '.$myFieldsInsert['query'].') values '. "\n";
    		$query .= '("'. $device['hostname'] .'", "'. $device['ip_addr'] .'", "'.$device['type'].'", "'. $device['vendor'] .'", '. "\n";
-   		$query .= ' "'. $device['model'] .'", "'. $device['version'] .'", "'. $device['description'] .'", "'. $device['sections'] .'" '. $myFieldsInsert['values'] .');'. "\n";
+   		$query .= ' "'. $device['model'] .'", "'. $device['version'] .'", "'. $device['description'] .'", "'. $device['sections'] .'", "'. $device['siteId'] .'" '. $myFieldsInsert['values'] .');'. "\n";
     }
     else if($device['action'] == "edit") {
 		
@@ -1387,7 +1387,7 @@ function updateDeviceDetails($device)
     	$query  = 'update `devices` set '. "\n";    
     	$query .= '`hostname` = "'. $device['hostname'] .'", `ip_addr` = "'. $device['ip_addr'] .'", `type` = "'. $device['type'] .'", `vendor` = "'. $device['vendor'] .'", '. "\n";    
     	$query .= '`model` = "'. $device['model'] .'", `version` = "'. $device['version'] .'", `description` = "'. $device['description'] .'", '. "\n";    
-    	$query .= '`sections` = "'. $device['sections'] .'" '. "\n"; 
+    	$query .= '`sections` = "'. $device['sections'] .'", siteId = "'. $device['siteId'] .'" '. "\n"; 
     	$query .= $myFieldsInsert['query']; 
     	$query .= 'where `id` = "'. $device['switchId'] .'";'. "\n";    
     }
@@ -1707,7 +1707,7 @@ function updateVLANDetails($vlan, $lastId = false)
     
     	$query  = 'insert into `vlans` '. "\n";
     	$query .= '(`name`,`number`,`description` '.$myFieldsInsert['query'].') values '. "\n";
-   		$query .= '("'. $vlan['name'] .'", "'. $vlan['number'] .'", "'. $vlan['description'] .'" '. $myFieldsInsert['values'] .' ); '. "\n";
+   		$query .= '("'. $vlan['name'] .'", "'. $vlan['number'] .'", "'. $vlan['description'] .'", "'. $vlan['switch'] .'" '. $myFieldsInsert['values'] .' ); '. "\n";
 
     }
     else if($vlan['action'] == "edit") {
@@ -1728,7 +1728,7 @@ function updateVLANDetails($vlan, $lastId = false)
 		}
     
     	$query  = 'update `vlans` set '. "\n";    
-    	$query .= '`name` = "'. $vlan['name'] .'", `number` = "'. $vlan['number'] .'", `description` = "'. $vlan['description'] .'" '. "\n";   
+    	$query .= '`name` = "'. $vlan['name'] .'", `number` = "'. $vlan['number'] .'", `description` = "'. $vlan['description'] .'", `switch` = "'. $vlan['switch'] .'" '. "\n";   
     	$query .= $myFieldsInsert['query'];  
     	$query .= 'where `vlanId` = "'. $vlan['vlanId'] .'";'. "\n";    
     }
@@ -1778,7 +1778,7 @@ function updateSITEDetails($site, $lastId = false)
     global $database;
 
     /* set querry based on action */
-    if($site['action'] == "add") {
+    if($site['action'] == "add" || $site['action'] == "add sub") {
     
         # custom fields
         $myFields = getCustomFields('sites');
@@ -1792,21 +1792,25 @@ function updateSITEDetails($site, $lastId = false)
 		
 		# get all user groups
 		$user = getUserDetailsByName ($username);
+		#print'<pre>';
+		#print_r($user);
+		#print'</pre>';
 		#print ("<div class='alert alert-info'>Query:$user,".$user['groups']."</div>");
 		$groups = json_decode($user['groups']);
 		$masterSite = subnetGetSITEdetailsById ($site['masterSiteId']);
-		$siteP = json_decode($masterSite['permissions']);
-		$sitePP = parseSectionPermissions($masterSite['permissions']);
-		foreach($siteP as $sk=>$sp) {
-			foreach($groups as $uk=>$up) {
-				if($uk == $sk) {
-					if($sp != "3") { $new = $sk; }
-				}	
+		if($user['role'] != "Administrator"){
+			$siteP = json_decode($masterSite['permissions']);
+			$sitePP = parseSectionPermissions($masterSite['permissions']);
+			foreach($siteP as $sk=>$sp) {
+				foreach($groups as $uk=>$up) {
+					if($uk == $sk) {
+						if($sp != "3") { $new = $sk; }
+					}	
+				}
 			}
+			$sitePP[$new] = "3";
+			$masterSite['permissions'] = json_encode($sitePP);
 		}
-		$sitePP[$new] = "3";
-		$masterSite['permissions'] = json_encode($sitePP);
-		
         if(sizeof($myFields) > 0) {
 			/* set inserts for custom */
 			foreach($myFields as $myField) {	
@@ -1852,6 +1856,7 @@ function updateSITEDetails($site, $lastId = false)
     	$query  = 'delete from `sites` where `siteId` = "'. $site['siteId1'] .'";'. "\n";
     }
     
+	#print ("<div class='alert alert-danger'>Query: ".$query.": $error</div>");
     /* execute */
     try { $res = $database->executeQuery( $query, true ); }
     catch (Exception $e) { 

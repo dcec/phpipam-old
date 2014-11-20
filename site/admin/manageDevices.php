@@ -63,7 +63,8 @@ else {
 	print '	<td>'. $device['model'] .'</td>'. "\n";
 	print '	<td>'. $device['version'] .'</td>'. "\n";
 	print '	<td class="description">'. $device['description'] .'</td>'. "\n";
-	print '	<td>'. $site['name'] .' ('. $site['company'] .')</td>'. "\n";
+	print '	<td>'. $site['name'];
+	if($site['company']){print ' ('. $site['company'] .')</td>'. "\n"; }else{ print '</td>'. "\n";}
 	//sections
 	print '	<td class="sections">';
 		$temp = explode(";",$device['sections']);
@@ -74,7 +75,7 @@ else {
 			print '<div class="switchSections">'. $section['name'] .'</div>'. "\n";
 			}
 		}
-		}
+	}
 	
 	print '	</td>'. "\n";
 	

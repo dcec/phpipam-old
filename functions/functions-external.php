@@ -56,9 +56,13 @@ function getDevicesAddressFromGlpi ($min = NULL,$max = NULL,$index,$days = 30)
 	$days = (time() - ($days * 86400));
 	
 	if($min and $max){
-		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'" and UNIX_TIMESTAMP(last_ocs_conn) >'.$days.';';
+		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn,t.name as type_name from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id';
+		$query    .= ' left join glpi_computertypes as t on n.typeid = t.id left join V_COMPUTERS as c on n.id = c.id';
+		$query    .= ' where INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'" AND status = "online" AND (UNIX_TIMESTAMP( last_ocs_conn ) > '.$days.' OR sorgente = "GLPI");';
 	}else{
-		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id where INET_ATON(ipaddress) > "0" and UNIX_TIMESTAMP(last_ocs_conn) >'.$days.' group by hostname;';
+		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ip_src,last_ocs_conn,t.name as type_name from V_COMPUTER_NETWORKPORTS as n left join glpi_plugin_ocsinventoryng_ocslinks as l on l.computers_id = n.id';
+		$query    .= ' left join glpi_computertypes as t on n.typeid = t.id left join V_COMPUTERS as c on n.id = c.id';
+		$query    .= ' where INET_ATON(ipaddress) > "0" AND status = "online" AND (UNIX_TIMESTAMP( last_ocs_conn ) > '.$days.' OR sorgente = "GLPI") group by hostname;';
 	}
 	/* execute */
 	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
@@ -70,9 +74,13 @@ function getDevicesAddressFromGlpi ($min = NULL,$max = NULL,$index,$days = 30)
     }  
 	
 	if($min and $max){
-		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ipaddress as ip_src from V_NETWORK_NETWORKPORTS as n where sorgente = "GLPI" and INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'";';
+		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ipaddress as ip_src,t.name as type_name from V_NETWORK_NETWORKPORTS as n';
+		$query    .= ' left join glpi_networkequipmenttypes as t on n.typeid = t.id left join V_NETWORK_DEVICES as c on n.id = c.id';
+		$query    .= ' where sorgente = "GLPI" AND status = "online" and INET_ATON(ipaddress) >= "'. $min .'" and INET_ATON(ipaddress) <= "'. $max .'";';
 	}else{
-		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ipaddress as ip_src from V_NETWORK_NETWORKPORTS as n where sorgente = "GLPI" and INET_ATON(ipaddress) > "0" group by hostname;';
+		$query    = 'select n.*,INET_ATON(ipaddress) as ifip,ipaddress as ip_src,t.name as type_name from V_NETWORK_NETWORKPORTS as n';
+		$query    .= ' left join glpi_networkequipmenttypes as t on n.typeid = t.id left join V_NETWORK_DEVICES as c on n.id = c.id';
+		$query    .= ' where sorgente = "GLPI" AND status = "online" and INET_ATON(ipaddress) > "0" group by hostname;';
 	}
 	/* execute */
 	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
@@ -93,12 +101,22 @@ function getDevicesAddressFromGlpi ($min = NULL,$max = NULL,$index,$days = 30)
 	
 	foreach($result as $r) {
 		$devices[$r[$index]]=$r;
-		$devices[$r[$index]]['type'] = $type[$r['computertype']];
+		if(array_key_exists($r['computertype'],$type)){
+			$devices[$r[$index]]['type'] = $type[$r['computertype']];
+		}
+		if(array_key_exists($r['type_name'],$type)){
+			$devices[$r[$index]]['type'] = $type[$r['type_name']];
+		}
 	}
 	
 	foreach($resultc as $r) {
 		$devices[$r[$index]]=$r;
-		$devices[$r[$index]]['type'] = $type[$r['computertype']];
+		if(array_key_exists($r['computertype'],$type)){
+			$devices[$r[$index]]['type'] = $type[$r['computertype']];
+		}
+		if(array_key_exists($r['type_name'],$type)){
+			$devices[$r[$index]]['type'] = $type[$r['type_name']];
+		}
 	}
 	
 	
@@ -134,6 +152,61 @@ function getSubnetFromGlpi ($address,$netmask)
     else 			{ return $devices; }	
 }
 
+function getDieselVmware_cuspropsFromGlpi ($id)
+{
+	global $db;                                                                      # get variables from config file
+	$database = new database($db['glpi_host'], $db['glpi_user'], $db['glpi_pass'], $db['glpi_name']);  
+
+    $query    = 'select * from glpi_plugin_dieselvmware_cusprops where computers_id = "'. $id .'" ;';
+    /* execute */
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
+    try { $result = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error:$query</div>");
+        return false;
+    }  
+	
+    /* close database connection */
+    $database->close();	
+	
+	foreach($result as $r) {
+		$props[]=$r;
+	}
+	
+    /* return true, else false */
+    if (!$props) 	{ return false; }
+    else 			{ return $props; }	
+}
+
+function getLocationFromGlpi ()
+{
+	global $db;                                                                      # get variables from config file
+	$database = new database($db['glpi_host'], $db['glpi_user'], $db['glpi_pass'], $db['glpi_name']);  
+
+    $query    = 'select * from glpi_locations;';
+    /* execute */
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
+    try { $result = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error:$query</div>");
+        return false;
+    }  
+	
+    /* close database connection */
+    $database->close();	
+	
+	foreach($result as $r) {
+		$locations['name'][$r['name']]=$r;
+		$locations['id'][$r['id']]=$r;
+	}
+	
+    /* return true, else false */
+    if (!$locations) 	{ return false; }
+    else 			{ return $locations; }	
+}
+
 function updateSubnetOnGlpi($res,$address,$netmask)
 {
     global $db;                                                                      # get variables from config file
@@ -161,12 +234,70 @@ function updateSubnetOnGlpi($res,$address,$netmask)
     return true;
 }
 
+function updateLocatiosOnGlpi($res,$id)
+{
+    global $db;                                                                      # get variables from config file
+    $database = new database($db['glpi_host'], $db['glpi_user'], $db['glpi_pass'], $db['glpi_name']);
+	
+    $temp = 'update `glpi_locations` set comment = "update by Ipam"';
+	foreach($res as $k=>$r) {
+		$temp .= ', `'.$k.'` = "'.$r.'"';
+	}
+	$temp .= ' where id = "'. $id .'";';
+	$query[] = $temp;
+	
+	# glue
+    $query = implode("\n", $query);
+	
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
+	//update
+    try { $database->executeMultipleQuerries($query); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print "<div class='alert alert-danger'>$error</div>";
+        return false;
+    }
+    # default ok
+    return true;
+}
+
 function insertSubnetOnGlpi($res)
 {
     global $db;                                                                      # get variables from config file
     $database = new database($db['glpi_host'], $db['glpi_user'], $db['glpi_pass'], $db['glpi_name']);
 	
     $temp = 'insert into `glpi_ipnetworks` ';
+	$row = '(`';
+	$value = ') values ("';
+	foreach($res as $k=>$r) {
+		$row  .= $k.'`,`';
+		$value .= $r.'","';
+	}
+	$row = substr($row, 0, -2);
+	$value = substr($value, 0, -2);
+	$temp .= $row.$value.');';
+	$query[] = $temp;
+	# glue
+    $query = implode("\n", $query);
+	
+	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
+	//update
+    try { $database->executeMultipleQuerries($query); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error:$query</div>");
+        return false;
+    }
+    # default ok
+    return true;
+}
+
+function insertLocationsOnGlpi($res)
+{
+    global $db;                                                                      # get variables from config file
+    $database = new database($db['glpi_host'], $db['glpi_user'], $db['glpi_pass'], $db['glpi_name']);
+	
+    $temp = 'insert into `glpi_locations` ';
 	$row = '(`';
 	$value = ') values ("';
 	foreach($res as $k=>$r) {
@@ -220,7 +351,7 @@ function getDevicesFromNedi ($index,$where = NULL,$limit = true)
 	"v" => "VMware"
 	);
 	
-    $query    = 'select device,devip as ip_addr,type as model,description,icon from devices'; 
+    $query    = 'select UCASE(device) as device ,devip as ip_addr,type as model,description,icon from devices'; 
 	if ($where){
 		$query .= ' where device = "'.$where.'"';
 	}
@@ -446,6 +577,10 @@ function getBalancedFromNedi ($min,$max,$index,$days = 30)
 		if ($r['rsip'] != "" && (!array_key_exists($r['rsip'], $devices) || !array_key_exists('bfarm', $devices[$r['ifip']]) || !array_key_exists($r['farm'], $devices[$r['ifip']]['bfarm']))){
 			$devices[$r['rsip']]['bfarm'][$r['farm']]=$r;
 		}
+		#if (!array_key_exists('device', $devices[$r['rsip']])){$devices[$r['rsip']]['device'] = $r['device'];}
+		if (!array_key_exists('device', $devices[$r['ifip']])){$devices[$r['ifip']]['device'] = $r['device'];}
+		#if (!array_key_exists('ifname', $devices[$r['rsip']])){$devices[$r['rsip']]['ifname'] = $r['ifname'];}
+		if (!array_key_exists('ifname', $devices[$r['ifip']])){$devices[$r['ifip']]['ifname'] = $r['ifname'];}
 	}
 	
     /* return true, else false */
@@ -460,7 +595,7 @@ function getNatFromNedi ($min,$max)
 
 	$days = (time() - ($days * 86400));
 	
-	$query    = 'select *,INET_NTOA(nip) as n_ip,INET_NTOA(mip) as m_ip from nats where ( nip > "'. $min .'" and nip < "'. $max .'" ) or ( mip > "'. $min .'" and mip < "'. $max .'" );';
+	$query    = 'select *,INET_NTOA(nip) as n_ip,INET_NTOA(mip) as m_ip from nats where ( nip >= "'. $min .'" and nip <= "'. $max .'" ) or ( mip >= "'. $min .'" and mip <= "'. $max .'" );';
 
     /* execute */
 	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
@@ -479,22 +614,30 @@ function getNatFromNedi ($min,$max)
 	
 	$devices = array();
 	foreach($result as $r) {
-		if (!array_key_exists($r['mip'], $devices)) {
-			$devices[$r['mip']]=$r;
-			$devices[$r['mip']]['ifip']=$r['mip'];
-			$devices[$r['mip']]['iptype']="mip";
-		}
-		if (!array_key_exists($r['nip'], $devices)) {
-			$devices[$r['nip']]=$r;
-			$devices[$r['nip']]['ifip']=$r['nip'];
-			$devices[$r['nip']]['iptype']="nip";
-		}
-		if($r['type'] == "VIP"){
-			if (array_key_exists($r['mip'], $devices)) {
-				$devices[$r['mip']]['vip'][$r['nip']]=$r;
+		if ($r['type'] == "DIP"){
+			for ($i = $r['mip']; $i <= $r['nip']; $i++) {
+				$devices[$i]=$r;
+				$devices[$i]['ifip']=$i;
+				$devices[$i]['iptype']="dip";
 			}
-			if (array_key_exists($r['nip'], $devices)) {
-				$devices[$r['nip']]['vip'][$r['mip']]=$r;
+		}else{
+			if (!array_key_exists($r['mip'], $devices)) {
+				$devices[$r['mip']]=$r;
+				$devices[$r['mip']]['ifip']=$r['mip'];
+				$devices[$r['mip']]['iptype']="mip";
+			}
+			if (!array_key_exists($r['nip'], $devices)) {
+				$devices[$r['nip']]=$r;
+				$devices[$r['nip']]['ifip']=$r['nip'];
+				$devices[$r['nip']]['iptype']="nip";
+			}
+			if($r['type'] == "VIP"){
+				if (array_key_exists($r['mip'], $devices)) {
+					$devices[$r['mip']]['vip'][$r['nip']]=$r;
+				}
+				if (array_key_exists($r['nip'], $devices)) {
+					$devices[$r['nip']]['vip'][$r['mip']]=$r;
+				}
 			}
 		}
 	}
@@ -508,7 +651,7 @@ function getNatFromNedi ($min,$max)
  * Get vlans from nedi index
  */
  
-function getVansFromNedi ($id = '',$device = '',$name = '')
+function getVansFromNedi ($id = '',$device = '',$name = '', $limit = true)
 {
 	global $db;                                                                      # get variables from config file
 	$database = new database($db['nedi_host'], $db['nedi_user'], $db['nedi_pass'], $db['nedi_name']);  
@@ -522,7 +665,7 @@ function getVansFromNedi ($id = '',$device = '',$name = '')
 		$query .= 'where vlanid = "'.$id.'"';
 	}
 	$query .= ' order by vlanid';
-	if (!$device && !$name) {$query .= ' limit 1';}
+	if (!$device && !$name && $limit) {$query .= ' limit 1';}
 	$query .= ';';
 	
     /* execute */
@@ -532,18 +675,38 @@ function getVansFromNedi ($id = '',$device = '',$name = '')
         print ("<div class='alert alert-danger'>"._('Error').": $error:$query</div>");
         return false;
     }  
-	
+
 	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
     /* close database connection */
     $database->close();	
 	
 	foreach($result as $r) {
-		$vlans[$r['vlanid']]=$r;	
+		$vlans[$r['vlanid']][$r['device']]=$r;	
 	}
 	
     /* return true, else false */
     if (!$vlans) 	{ return false; }
     else 			{ return $vlans; }	
+}
+
+function getSubnetDetailsByVlan ($id)
+{
+
+	    global $database;                                                                      
+	    /* set query */
+	    $query         = 'select * from `subnets` where `vlanId` = "'. $id .'";';
+	    /* execute */
+	    try { $SubnetDetails = $database->getArray( $query ); }
+	    catch (Exception $e) { 
+	        $error =  $e->getMessage(); 
+	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+	        return false;
+	    } 
+	    /* return subnet details - only 1st field! We cannot do getRow because we need associative array */
+	    if(sizeof($SubnetDetails) > 0) {
+	    	return($SubnetDetails[0]); 
+	    }
+
 }
 
 /**
@@ -779,6 +942,7 @@ function updateLastSeenValue($lastseen)
 		if ($r['state']){$temp .= ', `state` = "'.$r['state'].'"';}
 		if ($r['mac']){$temp .= ', `mac` = "'.$r['mac'].'"';}
 		if ($r['port']){$temp .= ', `port` = "'.$r['port'].'"';}
+		if ($r['Address Type']){$temp .= ', `Address Type` = "'.$r['Address Type'].'"';}
 		if ($r['description']){$r['description'] = mysqli_real_escape_string($database, $r['description']);print ("<div class='alert alert-info'>Query:".$r['description']."</div>\n");$temp .= ', `description` = "'.$r['description'].'"';}
 		if ($r['switch']){$temp .= ', `switch` = "'.$r['switch'].'"';}
 		$temp .= ' where `id` = "'.$r['id'].'";';
@@ -957,5 +1121,4 @@ function insertNediVlan($name,$number,$description,$switch)
     # default ok
     return true;
 }
-
 ?>

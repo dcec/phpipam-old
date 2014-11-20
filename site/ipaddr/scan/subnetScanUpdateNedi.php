@@ -75,6 +75,7 @@ foreach($subnetIds as $subnetId) {
 		if (!array_key_exists($k, $result)) {
 			$result[$k]=$n;
 		}
+		$result[$k]['nodes'] = "nodes";
 	}
 	
 	foreach($nat as $k=>$n) {
@@ -120,7 +121,6 @@ foreach($subnetIds as $subnetId) {
 			foreach($balanced[$k] as $n=>$a) {
 				if (!array_key_exists($n, $result[$k])){$result[$k][$n] = $balanced[$k][$n];}
 			}
-			$result[$k]['Address Type'] = "balanced";
 		}
 		if(array_key_exists($k, $nat) && $nat[$k]['iptype'] == "nip"){
 		#if (array_key_exists($k, $nat) && $nat[$k]['iptype'] == "nip") {
@@ -170,6 +170,7 @@ foreach($subnetIds as $subnetId) {
 								#print "<div class='alert alert-info'>BAL:".transform2long($k).":".$descr."</div>";
 								#if($addresses[$k]['description'] != $descr){$update[$k]['description'] = $descr;}
 							}
+							$result[$k]['Address Type'] = "balanced";
 						}
 						if($result[$k]['bfarm']){
 							foreach($result[$k]['bfarm'] as $i=>$f) {
@@ -188,6 +189,7 @@ foreach($subnetIds as $subnetId) {
 								#}
 								#print "<div class='alert alert-info'>BALANCED ON:".transform2long($k).":".$descr."</div>";
 							}
+							$result[$k]['Address Type'] = "real";
 						}
 						
 						if($result[$k]['iptype'] && $result[$k]['iptype'] == "nip"){
@@ -225,6 +227,7 @@ foreach($subnetIds as $subnetId) {
 							if($addresses[$k]['description'] != $result[$k]['description']){$descr = $result[$k]['description'];}
 							#print "<div class='alert alert-info'>mip".$descr."</div>";
 						}
+						if($addresses[$k]['Address Type'] != $result[$k]['Address Type'] && $result[$k]['Address Type'] != ""){$update[$k]['Address Type'] = $result[$k]['Address Type'];}
 						#print "<div class='alert alert-info'>".$descr."</div>";
 						if($addresses[$k]['description'] != $descr && ($result[$k]['farm'] || $result[$k]['bfarm'] || $result[$k]['iptype'])){
 							print "<div class='alert alert-info'>".$addresses[$k]['description']." <> ".$descr."</div>";
@@ -239,7 +242,7 @@ foreach($subnetIds as $subnetId) {
 								$device_add = $device[$result[$k]['device']];
 								$device_add['hostname'] = $result[$k]['device'];
 								$device_add['description'] = $result[$k]['description'];
-								$device_add['action'] = "add";$device_add['agent'] = "NeDi";
+								$device_add['action'] = "add";$device_add['agent'] = "UpdateNeDi";
 								$device_add['ip_addr'] = Transform2long($device[$result[$k]['device']][ip_addr]);
 								$device_add['sections'] = $subnet['sectionId'];
 								$device_add['siteId'] = $subnet['siteId'];
@@ -348,7 +351,7 @@ else {
 if($_POST['debug']==1) {
 	print "<hr>";
 	print "<pre> update";
-	print_r($result_pre);
+	print_r($update);
 	print "</pre>";
 	print "<pre>result";
 	print_r($result);

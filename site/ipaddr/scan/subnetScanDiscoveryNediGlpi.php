@@ -88,6 +88,13 @@ foreach($subnetIds as $subnetId) {
 				if (!array_key_exists($n, $result[$k])){$result[$k][$n] = $nat[$k][$n];}
 			}
 		}
+		
+		if ($n['type'] == "DIP" && $k >= $min && $k <= $max) {
+			$result[$k]=$n;
+			$result[$k]['Address Type'] = "nat";			
+			$result[$k]['description'] .= "DIP: ID ".$n['nmask'];
+			#print "<div class='alert alert-info'>nat: ".$n['m_ip']." ".$n['type']." ".$result[$k]['description']."</div>";
+		}
 		if ($n['iptype'] == "mip" && $k >= $min && $k <= $max) {
 			$result[$k]=$n;
 			$result[$k]['Address Type'] = "nat";
@@ -115,10 +122,12 @@ foreach($subnetIds as $subnetId) {
 				}
 			}
 		}
+
 		
 	}
 	
 	foreach($glpi as $k=>$n) {
+	#print "<div class='alert alert-info'>nat: ".$result[$k]['description']."</div>";
 		if (!array_key_exists($k, $result)){
 			if($k >= $min && $k <= $max){$result[$k]=$n;}
 			#print "<div class='alert alert-info'>not array_key_exists: ".$k."</div>";
@@ -147,6 +156,7 @@ foreach($subnetIds as $subnetId) {
 	}
 	
 	foreach($result as $k=>$n) {
+		#print "<div class='alert alert-info'>nat: ".$result[$k]['description']."</div>";
 		if(array_key_exists($k, $balanced)){
 			foreach($balanced[$k] as $n=>$a) {
 				if (!array_key_exists($n, $result[$k])){$result[$k][$n] = $balanced[$k][$n];}
@@ -208,6 +218,7 @@ foreach($subnetIds as $subnetId) {
 				}
 			}
 		}
+		#print "<div class='alert alert-info'>nat: ".$result[$k]['description']."</div>";
 	}	
 
 	// Add switch index and limit row
@@ -234,7 +245,7 @@ foreach($subnetIds as $subnetId) {
 			$device_add = $device[$r['device']];
 			$device_add['hostname'] = $r['device'];
 			$device_add['description'] = $device[$r['device']]['description'];
-			$device_add['action'] = "add";$device_add['agent'] = "NeDi";
+			$device_add['action'] = "add";$device_add['agent'] = "ScanNeDi";
 			$device_add['ip_addr'] = Transform2long($device[$r['device']]['ip_addr']);
 			$device_add['sections'] = $subnet['sectionId'];
 			$device_add['siteId'] = $subnet['siteId'];
@@ -244,10 +255,12 @@ foreach($subnetIds as $subnetId) {
 		if ($r['hostname'] && !array_key_exists($r['hostname'], $devices)) {
 			$device_add = $result[$k];
 			$device_add['hostname'] = $r['hostname'];
-			$device_add['action'] = "add";$device_add['agent'] = "glpi";
+			$device_add['action'] = "add";$device_add['agent'] = "ScanGlpi";
 			$device_add['ip_addr'] = $result[$k]['ipaddress'];
 			$device_add['sections'] = $subnet['sectionId'];
 			$device_add['siteId'] = $subnet['siteId'];
+			$device_add['glpi_id'] = $result[$k]['id'];
+			$device_add['glpi_type'] = $result[$k]['tipo'];
 			updateDeviceDetails($device_add);
 			$devices = getDeviceIndexHostname('hostname');
 		}
@@ -385,7 +398,7 @@ if($_POST['debug']==1) {
 	print_r($glpi);
 	print "</pre>";
 	print "<pre>";
-	print_r($balanced);
+	print_r($nat);
 	print "</pre>";
 }
 }else{

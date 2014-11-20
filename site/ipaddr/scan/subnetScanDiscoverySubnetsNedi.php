@@ -64,25 +64,29 @@ if($subnets){
 				if($subnets[$k]['port'] != $result[$k]['ifname']){$up = 1;$update['port'] = $result[$k]['ifname'];}
 				
 				$switch=$devices[$result[$k]['device']]['id'];		
-				if ($result[$k]['device'] && $result[$k]['pvid'] && (!array_key_exists($result[$k]['pvid'], $vlans) || (array_key_exists($result[$k]['pvid'], $vlans) && !array_key_exists($switch, $vlans[$result[$k]['pvid']])))) {
+				if ($result[$k]['device'] && $result[$k]['pvid'] && $vlans){
+				#if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted db0 ".$switch."</div>";}
+				if (!array_key_exists($result[$k]['pvid'], $vlans) || (array_key_exists($result[$k]['pvid'], $vlans) && !array_key_exists($switch, $vlans[$result[$k]['pvid']]))) {
 					$nedi_vlans = getVansFromNedi($result[$k]['pvid'],$result[$k]['device']);
-					if($result[$k]['pvid']>0){
-						if($nedi_vlans[$result[$k]['pvid']]['vlanname']){
-							insertNediVlan($nedi_vlans[$result[$k]['pvid']]['vlanname'],$result[$k]['pvid'],'',$switch);
-							if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans1: ".$result[$k]['pvid']." ".$nedi_vlans[$result[$k]['pvid']]['vlanname']." ".$switch."</div>";}
+					#if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted db3 ".$switch."</div>";}
+					if($result[$k]['pvid']>0 && $switch >0){
+						if($nedi_vlans[$result[$k]['pvid']][$result[$k]['device']]['vlanname']){
+							insertNediVlan($nedi_vlans[$result[$k]['pvid']][$result[$k]['device']]['vlanname'],$result[$k]['pvid'],'',$switch);
+							if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans1: ".$result[$k]['pvid']." ".$nedi_vlans[$result[$k]['pvid']][$result[$k]['device']]['vlanname']." ".$switch."</div>";}
 						}else{
 							$nedi_vlans = getVansFromNedi($result[$k]['pvid'],'',$result[$k]['ifname']);
 							if ($nedi_vlans) {
 								insertNediVlan($result[$k]['ifname'],$result[$k]['pvid'],'',$switch);
 								if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans2: ".$result[$k]['pvid']." ".$result[$k]['ifname']." ".$switch."</div>";}
 							}else{
-								$nedi_vlans = getVansFromNedi($r['pvid']);
+								#$nedi_vlans = getVansFromNedi($r['pvid']);
 								insertNediVlan($result[$k]['ifname'],$result[$k]['pvid'],'',$switch);
 								if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans3: ".$result[$k]['pvid']." ".$result[$k]['ifname']." ".$switch."</div>";}
 							}
 						}
 					}
 					$vlans = getVansbyIndex();
+				}
 				}
 				if($subnets[$k]['vlanId'] != $vlans[$result[$k]['pvid']][$switch]['vlanId'] && $vlans[$result[$k]['pvid']][$switch]['vlanId'] != ""){$up = 1;$update['vlanId'] = $vlans[$result[$k]['pvid']][$switch]['vlanId'];}
 				if($up == 1){
@@ -132,7 +136,7 @@ foreach($result as $k=>$r) {
 		$nedi_vlans = getVansFromNedi($r['pvid'],$r['device']);	
 		if($r['pvid']>0){
 			if($nedi_vlans[$r['pvid']]['vlanname']){
-				insertNediVlan($nedi_vlans[$r['pvid']]['vlanname'],$r['pvid'],'',$devices[$r['device']]['id']);
+				insertNediVlan($nedi_vlans[$r['pvid']][$result[$k]['device']]['vlanname'],$r['pvid'],'',$devices[$r['device']]['id']);
 				if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans: ".$r['pvid']." ".$nedi_vlans[$r['pvid']]['vlanname']."</div>";}
 			}else{
 				$nedi_vlans = getVansFromNedi($r['pvid'],'',$r['ifname']);
@@ -140,7 +144,7 @@ foreach($result as $k=>$r) {
 					insertNediVlan($r['ifname'],$r['pvid'],'',$devices[$r['device']]['id']);
 					if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans: ".$r['pvid']." ".$r['ifname']."</div>";}
 				}else{
-					$nedi_vlans = getVansFromNedi($r['pvid']);
+					#$nedi_vlans = getVansFromNedi($r['pvid']);
 					insertNediVlan($r['ifname'],$r['pvid'],'',$devices[$r['device']]['id']);
 					if($_POST['debug']==1) {print "<div class='alert alert-info'>Inserted Vlans: ".$r['pvid']." ".$r['ifname']."</div>";}
 				}

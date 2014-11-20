@@ -36,6 +36,8 @@ print ' <th>'._('Belonging subnets').'</th>' . "\n";
 print ' <th>'._('Section').'</th>' . "\n";
 print ' <th class="hidden-xs hidden-sm">'._('Used').'</th>' . "\n";
 print ' <th class="hidden-xs hidden-sm">'._('free').' [%]</th>' . "\n";
+print ' <th>'._('Device').'</th>' . "\n";
+print ' <th>'._('Site').'</th>' . "\n";
 if(sizeof($custom) > 0) {
 	foreach($custom as $field) {
 		print "	<th class='hidden-xs hidden-sm hidden-md'>$field[name]</th>";
@@ -111,7 +113,12 @@ foreach ($vlans as $vlan) {
         	print '<td class="used hidden-xs hidden-sm">---</td>'. "\n";
         	print '<td class="free hidden-xs hidden-sm">---</td>';
         }
-    
+		$device = getDeviceDetailsById($vlan['switch']);
+		print '	<td>'. $device['hostname'] .'</td>'. "\n";
+		$site = subnetGetSITEdetailsById($device['siteId']);
+		print '	<td>'. $site['name'];
+		if($site['company']){ print ' ('. $site['company'] .')';}
+		print '</td>'. "\n";
         # custom
         if(sizeof($custom) > 0) {
 	   		foreach($custom as $field) {

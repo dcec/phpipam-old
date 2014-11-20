@@ -12,6 +12,10 @@ isUserAuthenticated ();
 /* get hosts under device */
 $device = getDeviceById($_GET['deviceid']);
 
+if($device['glpi_id'] && $device['glpi_type']){
+	$custom = getDieselVmware_cuspropsFromGlpi($device['glpi_id']);
+}
+
 /* Get all IP addresses belonging to switch */
 $ipaddresses = getIPaddressesBySwitchName ( $device['id'] );
 
@@ -47,6 +51,13 @@ print "<table id='switchMainTable' class='devices table table-striped table-top 
 	if(!empty($device['tname'])){print "<tr><th colspan='7' style='border-top: 0px;border-bottom:none'>Type: $device[tname]</th></tr>";}
 	if(!empty($device['model'])){print "<tr><th colspan='7' style='border-top: 0px;border-bottom:none'>Model: $device[model]</th></tr>";}
 	if(!empty($device['description'])){print "<tr><th colspan='7' style='border-top: 0px;border-bottom:none'>Description: $device[description]</th></tr>";}
+	if($custom){
+		foreach ($custom as $k=>$c) {
+			if($k != 'id' && $k != 'computers_id'){
+				print "<tr><th colspan='7' style='border-top: 0px;border-bottom:none'>".$c['prop'].": ".$c['value']."</th></tr>";
+			}
+		}
+	}
 	print "</tbody>";
 	
 	# collapsed div with details
@@ -107,6 +118,6 @@ print "<table id='switchMainTable' class='devices table table-striped table-top 
 
 print "</table>";			# end major table
 #print "<pre>";
-#print_r($device);
+#print_r($custom);
 #print "</pre>";
 ?>

@@ -51,6 +51,7 @@ if(sizeof($res)>0) {
 		print "<div class='alert alert-success'>"._("Scan results added to database")."!</div>";
 		foreach($res as $ip) {
 			$ip['action'] = "add";$ip['agent'] = "NeDiGlpi";
+			$ip['description'] = mysqli_real_escape_string($database, $ip['description']);
 			$log = prepareLogFromArray ($ip);
 			updateLogTable ($ip['action'] .' of IP address '. $ip['ip_addr'] .' succesfull!', $log, 0);
 		}

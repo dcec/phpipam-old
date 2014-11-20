@@ -15,6 +15,8 @@ $sites = getAllSites (true);
 
 /* get custom fields */
 $custom = getCustomFields('sites');
+unset($custom['ICCode']);
+unset($custom['NamingC']);
 
 # title
 print "<h4>"._('Available Sites:')."</h4>";
@@ -32,7 +34,7 @@ print "<table id='sites' class='table table-striped table-condensed table-top'>"
 /* headers */
 print '<tr">' . "\n";
 print ' <th>'._('Name').'</th>' . "\n";
-print ' <th>'._('Company').'</th>' . "\n";
+#print ' <th>'._('Company').'</th>' . "\n";
 print ' <th>'._('Location').'</th>' . "\n";
 print ' <th>'._('Master Site').'</th>' . "\n";
 if(sizeof($custom) > 0) {
@@ -103,7 +105,7 @@ foreach ($sites as $site) {
 		/* print first 3 only if change happened! */
 		if($change == "change") {
 			print ' <td>'. $site['name']         .'</td>' . "\n";
-			print ' <td>'. $site['company']           .'</td>' . "\n";
+			#print ' <td>'. $site['company']           .'</td>' . "\n";
 			print ' <td>'. $site['location'] .'</td>' . "\n";			
 		}
 		else {
@@ -114,7 +116,7 @@ foreach ($sites as $site) {
 		
 		$master = subnetGetSITEdetailsById($site['masterSiteId']);
 		if ($master['siteId']>0){
-			print '	<td class="master">'. $master['name'] .' ('. $master['company'] .')</td>'. "\n";
+			print '	<td class="master">'. $master['name'] .'</td>'. "\n";
 		}else{
 			print '	<td class="master"></td>'. "\n";
 		}

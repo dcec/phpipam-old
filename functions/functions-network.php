@@ -1257,8 +1257,6 @@ function getSubnetDetails ($subnetId)
  */
 function getSubnetDetailsById ($id)
 {
-
-
 	# for changelog
 	if($id=="subnetId") {
 		return false;
@@ -1273,20 +1271,13 @@ function getSubnetDetailsById ($id)
 	    global $database;                                                                      
 	    /* set query */
 	    $query         = 'select * from `subnets` where `id` = "'. $id .'";';
-
-
-		
 	    /* execute */
 	    try { $SubnetDetails = $database->getArray( $query ); }
 	    catch (Exception $e) { 
 	        $error =  $e->getMessage(); 
 	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
 	        return false;
-
-
-
 	    } 
-		
 	    /* return subnet details - only 1st field! We cannot do getRow because we need associative array */
 	    if(sizeof($SubnetDetails) > 0) { 
 	    	writeCache('subnet', $id, $SubnetDetails[0]);
@@ -1301,24 +1292,36 @@ function getSubnetDetailsById ($id)
  */
 function getSiteDetailsById ($siteId)
 {
-    global $database;
+	# for changelog
+	if($id=="subnetId") {
+		return false;
+	}
+	# check if already in cache
+	elseif($vtmp = checkCache("site", $id)) {
+		return $vtmp;
+	}
+	# query
+	else {
 	
-    /* set query, open db connection and fetch results */
-    $query         = 'select * from `sites` where `siteId` = "'. $siteId .'";';
-
-    /* execute */
-	#print ("<div class='alert alert-info'>: $error</div>");
-    try { $SubnetDetails = $database->getArray( $query ); }
-    catch (Exception $e) { 
-        $error =  $e->getMessage(); 
-        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
-        return false;
-    } 
-    $database->close();
-
-    /* return subnet details - only 1st field! We cannot do getRow because we need associative array */
-    if(sizeof($SubnetDetails) > 0) { return($SubnetDetails[0]); }
+	    global $database;                                                                      
+	    /* set query */
+	    $query         = 'select * from `sites` where `siteId` = "'. $siteId .'";';
+	    /* execute */
+	    try { $SiteDetails = $database->getArray( $query ); }
+	    catch (Exception $e) { 
+	        $error =  $e->getMessage(); 
+	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+	        return false;
+	    } 
+	    /* return subnet details - only 1st field! We cannot do getRow because we need associative array */
+	    if(sizeof($SiteDetails) > 0) { 
+	    	writeCache('site', $siteId, $SiteDetails[0]);
+	    	return($SiteDetails[0]); 
+	    }
+    	
+	}
 }
+
 
 /**
  * Calculate subnet details
@@ -1565,11 +1568,6 @@ function verifyNestedSubnetOverlapping ($sectionId, $subnetNew, $vrfId, $masterS
  */
 function subnetContainsSlaves($subnetId)
 {
-
-
-
-
-
 	# we need new temp variable for empties
 	$subnetIdtmp = $subnetId;
 	if(strlen($subnetIdtmp)==0)	{ $subnetIdtmp="root"; }
@@ -1579,14 +1577,6 @@ function subnetContainsSlaves($subnetId)
 	}
 	# query
 	else {
-
-
-
-
-
-
-
-
 	    global $database;                                                                     
 	    
 	    /* get all ip addresses in subnet */
@@ -1607,31 +1597,39 @@ function subnetContainsSlaves($subnetId)
 }
 
 /**
- * Check if site contains slaves
+ * Check if subnet contains slaves
  */
-function siteContainsSlaves($siteId)
+function siteContainsSlaves($subnetId)
 {
-    global $database; 
-    
-    /* get all ip addresses in subnet */
-    $query 		  = 'SELECT count(*) from sites where `masterSiteId` = "'. $siteId .'";';    
-
-    /* execute */
-    try { $slaveSites = $database->getArray( $query ); }
-    catch (Exception $e) { 
-        $error =  $e->getMessage(); 
-        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
-        return false;
-    }    
-
-
-
-
+	# we need new temp variable for empties
+	$subnetIdtmp = $subnetId;
+	if(strlen($subnetIdtmp)==0)	{ $subnetIdtmp="root"; }
+	# check if already in cache
+	if($vtmp = checkCache("sitecontainsslaves", $subnetIdtmp)) {
+		return $vtmp;
+	}
+	# query
+	else {
+	    global $database;                                                                     
+	    
+	    /* get all ip addresses in subnet */
+	    $query 		  = 'SELECT count(*) from `sites` where `masterSiteId` = "'. $subnetId .'";';    
 	
-	if($slaveSites[0]['count(*)']) { return true; }
-	else 							 { return false; }
-
+	    /* execute */
+	    try { $slaveSites = $database->getArray( $query ); }
+	    catch (Exception $e) { 
+	        $error =  $e->getMessage(); 
+	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+	        return false;
+	    }
+		
+		if($slaveSites[0]['count(*)']) { writeCache("sitecontainsslaves", $subnetIdtmp, true);	return true; }
+		else 							 { writeCache("sitecontainsslaves", $subnetIdtmp, false);	return false; }
+	
+	}
 }
+
+
 
 /**
  * Verify IPv4 subnet overlapping
@@ -2096,6 +2094,7 @@ function printDropdownMenuByMasterSite($masterSiteId = "0",$SiteId = "0")
 				
 				if(!empty($option['value']['company']) && strlen($option['value']['name']) < 25) { $printSITE .= " (".$option['value']['company'].")"; }
 				
+				
 				if ($permission > 0 && $option['value']['siteId'] != $SiteId){
 					if($option['value']['siteId'] == $masterSiteId) 	{ $html[] = "<option value='".$option['value']['siteId']."' selected='selected'>$repeat ".$printSITE."</option>"; }
 					else 											{ $html[] = "<option value='".$option['value']['siteId']."'>$repeat ".$printSITE."</option>"; }
@@ -2252,7 +2251,7 @@ function getAllVlans($tools = false)
 	}
 		
     /* check if it came from tools and use different query! */
-    if($tools) 	{ $query = 'SELECT vlans.number,vlans.name,vlans.description,subnets.subnet,subnets.mask,subnets.id AS subnetId,subnets.sectionId'.$myFieldsInsert['id'].' FROM vlans LEFT JOIN subnets ON subnets.vlanId = vlans.vlanId ORDER BY vlans.number ASC;'; }
+    if($tools) 	{ $query = 'SELECT vlans.number,vlans.name,vlans.description,vlans.switch,subnets.subnet,subnets.mask,subnets.id AS subnetId,subnets.sectionId'.$myFieldsInsert['id'].' FROM vlans LEFT JOIN subnets ON subnets.vlanId = vlans.vlanId ORDER BY vlans.number ASC;'; }
     else 		{ $query = 'select * from `vlans` order by `number` asc;'; }
 
     /* execute */
@@ -2923,7 +2922,7 @@ function SetInsertQuery( $ip )
 				$query .= "`". $myField['name'] ."` = '". $ip[$myField['name']] ."',";				
 			}
 		}
-		
+		if($ip['lastSeen']){ $query .= "`lastSeen` = '". $ip['lastSeen'] ."', ". "\n";}
 		$query .= "`owner` = '". $ip['owner'] ."' , `state` = '". $ip['state'] ."', `switch` = '". $ip['switch'] ."', ". "\n"; 
 		$query .= "`port` = '". $ip['port'] ."', `note` = '". $ip['note'] ."', `excludePing` = '". @$ip['excludePing'] ."' ";
 		$query .= "where `id` = '". $ip['id'] ."';";	
@@ -4130,11 +4129,11 @@ function getAllChangelogs($filter = false, $expr, $limit = 100)
 	    $query = "select * from (
 					select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`ip_addr`,'mask',`sectionId`,`subnetId`,`ip`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
 					from `changelog` as `c`, `users` as `u`,`ipaddresses` as `ip`,`subnets` as `su`
-					where `c`.`ctype` = 'ip_addr' and `c`.`cuser` = `u`.`id` and `c`.`coid`=`ip`.`id` and `ip`.`subnetId` = `su`.`id`
+					where `c`.`ctype` = 'ip_addr' and `c`.`cuser` = `u`.`id` and `c`.`coid`=`ip`.`id` and `ip`.`subnetId` = `su`.`id` order by `cid` limit $limit
 					union all
 					select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`subnet`,`mask`,`sectionId`,'subnetId',`su`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
 					from `changelog` as `c`, `users` as `u`,`subnets` as `su`
-					where `c`.`ctype` = 'subnet' and  `c`.`cuser` = `u`.`id` and `c`.`coid`=`su`.`id`	
+					where `c`.`ctype` = 'subnet' and  `c`.`cuser` = `u`.`id` and `c`.`coid`=`su`.`id` order by `cid` limit $limit	
 				) as `ips` 
 				where `coid`='$expr' or `ctype`='$expr' or `real_name` like '$expr' or `cdate` like '$expr' or `cdiff` like '$expr' or INET_NTOA(`ip_addr`) like '$expr'
 				order by `cid` desc limit $limit;";  		

@@ -110,9 +110,10 @@ $(document).ready(function(){
 
 	<!-- site -->
     <tr>
-        <td class="middle"><?php print _('Site'); ?></td>
+        <td class="middle"><?php print _('SITE'); ?></td>
         <td id="siteDropdown"> 
-			<?php include('manageSubnetEditPrintSiteDropdown.php'); ?>
+			<!-- <?php #include('manageSubnetEditPrintSiteDropdown.php'); ?> -->
+			<?php printDropdownMenuBySite($subnetDataOld['siteId']); ?>
          </td>
         <td class="info2"><?php print _('Select SITE'); ?></td>
     </tr>

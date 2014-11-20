@@ -50,6 +50,101 @@ $devices = getDeviceIndexHostname('hostname');
 $devices_id = getDeviceIndexHostname('id');
 $settings = getAllSettings();
 $statuses = explode(";", $settings['pingStatus']);
+
+$sites = getAllSites();
+$children = array();
+$rootId = 0;	# root is 0
+foreach ( $sites as $item )
+	$children[$item['masterSiteId']][] = $item;
+
+# loop will be false if the root has no children (i.e., an empty menu!)
+$loop  = !empty( $children[$rootId] );
+
+# initializing $parent as the root
+$parent = $rootId;
+
+#$parent_stackF = array();
+$parent_stack  = array();
+
+# return table content (tr and td's) - subnets
+while ( $loop && ( ( $option = each( $children[$parent] ) ) || ( $parent > $rootId ) ) )
+{
+	# repeat 
+	$repeat  = str_repeat( " - ", ( count($parent_stack)) );
+	# dashes
+	
+	if(count($parent_stack) == 0)			{ $completename = $option['value']['name']; }
+	elseif(count($parent_stack) == $count)	{ $completename = $dash . $option['value']['name']; }
+	else									{ $completename = $dash1 . $option['value']['name']; }
+		
+	if(count($parent_stack) == 0)	{ $dash = $option['value']['name'] . " > "; $dash1 = $option['value']['name'] . " > "; }
+	elseif(count($parent_stack) != $count){ $dash = $dash1; $dash1 .= $option['value']['name'] . " > ";}
+	else								{ $dash1 = $dash  . $option['value']['name'] . " > ";}
+	
+	$prec = $count;
+	# count levels
+	$count = count( $parent_stack );
+	
+	# print table line if it exists and it is not folder
+	if(strlen($option['value']['name']) > 0) { 
+		# selected
+		#$permission = checkSitePermission ($option['value']['siteId']);
+		$array['name'][$option['value']['name']] = $option['value'];
+		$array['name'][$option['value']['name']]['level'] = $count + 1;
+		$array['name'][$option['value']['name']]['locations_id'] = $option['value']['masterSiteId'];
+		$array['name'][$option['value']['name']]['completename'] = $completename;
+		$array['siteId'][$option['value']['siteId']] = $array['name'][$option['value']['name']];
+		#$printSITE = $option['value']['name'];
+
+		#if(!empty($option['value']['company']) && strlen($option['value']['name']) < 25) { $printSITE .= " (".$option['value']['company'].")"; }
+
+		#if ($permission > 0 || $option['value']['siteId'] == "Add"){
+		#if($option['value']['siteId'] == $subnetSiteId) 	{ $html[] = "<option value='".$option['value']['siteId']."' selected='selected'>$repeat ".$printSITE."</option>"; }
+		#else 	{ $html[] = "<option value='".$option['value']['siteId']."'>$repeat ".$printSITE."</option>"; }
+		#}
+	}
+	
+	if ( $option === false ) { $parent = array_pop( $parent_stack ); }
+		# Has slave subnets
+		elseif ( !empty( $children[$option['value']['siteId']] ) ) {
+		array_push( $parent_stack, $option['value']['masterSiteId'] );
+		$parent = $option['value']['siteId'];
+	}
+	# Last items
+	else { }
+}
+
+$location_glpi = getLocationFromGlpi();
+
+foreach($array['name'] as $k=>$a) {
+	if (array_key_exists($k, $location_glpi['name'])){
+		if( $location_glpi['name'][$k]['name'] != $a['name']){$glpi_update['name']=$a['name'];}
+		if( $location_glpi['name'][$k]['completename'] != $a['completename']){$glpi_update['completename']=$a['completename'];}
+		if( $location_glpi['name'][$k]['level'] != $a['level']){$glpi_update['level']=$a['level'];}
+		
+		if($a['masterSiteId'] == '0' && $location_glpi['name'][$k]['locations_id'] != '0'){$glpi_update['locations_id']='0';}
+		if($a['masterSiteId'] > 0){
+			$name_g = $location_glpi['id'][$location_glpi['name'][$k]['locations_id']]['name'];
+			$name_p = $array['siteId'][$a['masterSiteId']]['name'];
+			#print ("<div class='alert alert-info'>masterSiteId: ".$a['masterSiteId']." $name_p, locations_id:".$location_glpi['name'][$k]['locations_id']." $name_g</div>");
+			if( $name_g != $name_p){
+				#print ("<div class='alert alert-info'>$name_g != $name_p</div>");
+				$glpi_update['locations_id']=$location_glpi['name'][$name_p]['id'];
+			}
+		}
+		if($glpi_update){updateLocatiosOnGlpi($glpi_update,$location_glpi['name'][$k]['id']);}
+	}else{
+		$glpi_update['name']=$a['name'];
+		$glpi_update['completename']=$a['completename'];
+		$glpi_update['level']=$a['level'];
+		if($a['masterSiteId'] > 0){
+			$name_p = $array['siteId'][$a['masterSiteId']]['name'];
+			$glpi_update['locations_id']=$location_glpi['name'][$name_p]['id'];
+		}else{$glpi_update['locations_id']='0';}
+		$glpi_update['comment'] = "Added by Ipam";
+		insertLocationsOnGlpi($glpi_update);
+	}
+}
 	
 foreach($subnetIds as $subnetId) {
 	# get subnet details
@@ -144,10 +239,12 @@ foreach($subnetIds as $subnetId) {
 						if(!$addresses[$k]['port']){$update[$k]['port'] = $result[$k]['portname'];$ip['port'] = $result[$k]['portname'];}
 						if($addresses[$k]['description'] != $result[$k]['commments'] && !preg_match("/Swap:/", $result[$k]['commments'])){
 							$update[$k]['description'] = $result[$k]['commments'];$ip['description'] = $result[$k]['commments'];
-							print ("<div class='alert alert-info'>".$addresses[$k]['description'] ."!=". $result[$k]['commments']."</div>");
+							#print ("<div class='alert alert-info'>".$addresses[$k]['description'] ."!=". $result[$k]['commments']."</div>");
 						}
+						#print "<div class='alert alert-info'>".$addresses[$k]['ip_addr'] ." != ". $addresses[$k]['switch']."</div>";
 						#if(!$addresses[$k]['description']){$update[$k]['description'] = $result[$k]['manufacturername'];$ip['description'] = $result[$k]['manufacturername'];}commments
 						if($addresses[$k]['switch'] == 0 or ( $devices_id and !array_key_exists($addresses[$k]['switch'],$devices_id)) or ! $devices_id){
+							print "<div class='alert alert-info'>Switch not exist:".$addresses[$k]['switch']."</div>";
 							if ($result[$k]['hostname'] && (( $devices and !array_key_exists($result[$k]['hostname'], $devices)) or ! $devices)) {
 								print "<div class='alert alert-info'>Switch not exist:".$result[$k]['hostname']."</div>";
 								#$device = getDevicesFromNedi ('device',$result[$k]['hostname']);
@@ -160,12 +257,14 @@ foreach($subnetIds as $subnetId) {
 								$device_add = $result[$k];
 								$device_add['hostname'] = $result[$k]['hostname'];
 								#$device_add['description'] = $r['description'];
-								$device_add['action'] = "add";$device_add['agent'] = "glpi";
+								$device_add['action'] = "add";$device_add['agent'] = "UpdateGlpi";
 								$device_add['ip_addr'] = $result[$k]['ip_src'];
 								$device_add['sections'] = $subnet['sectionId'];
 								$device_add['siteId'] = $subnet['siteId'];
-								$device_add['type'] = "10";
+								$device_add['type'] = ($result[$k]['type'])?$result[$k]['type']:"10";
 								$device_add['vendor'] = $result[$k]['manufacturername'];
+								$device_add['glpi_id'] = $result[$k]['id'];
+								$device_add['glpi_type'] = $result[$k]['tipo'];
 								updateDeviceDetails($device_add);
 								$devices = getDeviceIndexHostname('hostname');	
 							}
@@ -269,16 +368,16 @@ else {
 if($_POST['debug']==1) {
 	print "<hr>";
 	print "<pre>addresses";
-	print_r($addresses);
+	#print_r($addresses);
 	print "</pre>";
 	print "<pre>subnet_glpi";
-	print_r($ip);
+	#print_r($ip);
 	print "</pre>";
 	print "<pre>update";
-	print_r($update);
+	#print_r($update);
 	print "</pre>";
 	print "<pre>glpi_update";
-	print_r($glpi_update);
+	print_r($sites);
 	print "</pre>";
 	print "<pre>";
 	print_r($result);

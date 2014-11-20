@@ -45,7 +45,7 @@ if($site['name'] == "") 					{ die('<div class="alert alert-danger">'._('Name is
 
 /* update details */
 if($site['action']=="add") {
-	if(!updateSITEDetails($site, true)) 	{ print('<div class="alert alert-danger"  >'._("Failed to $site[action] SITE").'!</div>'); }
+	if(!$id=updateSITEDetails($site, true)) 	{ print('<div class="alert alert-danger"  >'._("Failed to $site[action] SITE").'!</div>'); }
 	else 										{ print('<div class="alert alert-success">'._("SITE $site[action] successfull").'!</div><p id="siteidforonthefly" style="display:none">'.$id.'</p>'); }	
 } else {
 	if(!updateSITEDetails($site, false)) 		{ print('<div class="alert alert-danger"  >'._("Failed to $site[action] SITE").'!</div>'); }

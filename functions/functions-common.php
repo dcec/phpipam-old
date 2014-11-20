@@ -203,6 +203,56 @@ function getNumberOfUsers ()
     return($details[0]['count']);
 }
 
+/**
+ * Get number of  users
+ */
+function getNumberOfLoggedInUser ()
+{
+
+    global $database; 
+    /* set query, open db connection and fetch results */
+    $query    = "select count(*) as count from logs where id IN (select * from (select MAX(id) from logs  WHERE `command` REGEXP 'logged' and username != '' group by username) as id) and `command` REGEXP 'logged in';";
+
+
+
+    /* execute */
+    try { $details = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    }  
+	   
+    /* return results */
+    return($details[0]['count']);
+}
+
+/**
+ * Get number of  users
+ */
+function getLoggedInUser ()
+{
+
+    global $database; 
+    /* set query, open db connection and fetch results */
+    $query    = "select *from logs where id IN (select * from (select MAX(id) from logs  WHERE `command` REGEXP 'logged' and username != '' group by username) as id) and `command` REGEXP 'logged in' order by date desc;";
+
+
+
+    /* execute */
+    try { $array = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    }  
+	 
+	foreach($array as $r) {
+		$result[]=$r;
+	}
+    /* return results */
+    return($result);
+}
 
 /**
  * Get all admin users
@@ -885,7 +935,7 @@ function getAllSettings()
 
 	# check if it already exists
 	if(isset($settings)) {
-		return($settings[0]);
+		return($settings);
 	} 
 
 	else {

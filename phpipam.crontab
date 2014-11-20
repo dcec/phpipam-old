@@ -1,0 +1,14 @@
+##phpIPAM tasck
+##Update ip from nedi on subnet enabled
+*/10 * * * * apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanUpdateNedi.php
+*/10 * * * * apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanUpdateGlpi.php
+##Notify request
+00 0  * * 1 apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanNotifyRequest.php
+##Scan and notify new ip
+#00 0  * * 1 apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanDiscoveryNedi.php
+#50 9  * * * apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanDiscoveryNedi.php
+#10 0  * * 1 apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanDiscoveryGlpi.php
+50 9  * * * apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanDiscoveryNediGlpi.php
+##Autodelete ip
+00 0  * * * apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanDeleteReserved.php
+00 0  * * * apache /usr/lib/nagios/plugins/check_mysql >/dev/null && /usr/bin/php /var/lib/neteye/phpipam/site/ipaddr/scan/subnetScanDeleteInactive.php >> /var/lib/neteye/phpipam/delete.log

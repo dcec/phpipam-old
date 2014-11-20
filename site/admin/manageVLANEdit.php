@@ -71,6 +71,30 @@ $(document).ready(function(){
 		</td>
 	</tr>
 	
+	<!-- device -->
+    <tr>
+        <td class="middle"><?php print _('Device'); ?></td>
+        <td id="switch"> 
+			<?php 
+				print '<select name="switch" class="ip_addr form-control input-sm input-w-auto" '.$delete.$readonly.'>'. "\n";
+				print '<option disabled>'._('Select device').':</option>'. "\n";
+				print '<option value="0" selected>'._('None').'</option>'. "\n";
+				$devices = getAllUniqueDevices();
+				
+				foreach($devices as $device) {
+					//check if permitted in this section!
+					$permission = checkSitePermission ($device['siteId']);
+					if ($permission > 0){
+						//if same
+						if($device['id'] == $vlan['switch']) { print '<option value="'. $device['id'] .'" selected>'. $device['hostname'] .'</option>'. "\n"; }
+						elseif(!$readonly) 									{ print '<option value="'. $device['id'] .'">'. $device['hostname'] .'</option>'. "\n";			 }
+					}
+				}
+				print '</select>'. "\n";		
+			?>
+        </td>
+    </tr>
+	
 	<!-- Custom -->
 	<?php
 	if(sizeof($custom) > 0) {

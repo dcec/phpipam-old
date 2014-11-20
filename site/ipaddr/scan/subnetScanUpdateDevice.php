@@ -20,7 +20,7 @@ if ($mysqli->connect_errno) {
 	else{die();}
 }
 $subnetIds = array();
-
+$debug = $_POST['debug'];
 if($_POST){
 	/* verify that user is logged in */
 	isUserAuthenticated(true);
@@ -44,31 +44,56 @@ if($_POST){
 	}
 }
 
-$devices = getDeviceIndexHostname('hostname');
-	
-#foreach($subnetIds as $subnetId) {
-	# get subnet details
-	#$subnet = getSubnetDetailsById ($subnetId);
-
-	# get all existing IP addresses
-	#$addresses_temp = getIpAddressesBySubnetId ($subnetId);
-
-	#foreach($addresses_temp as $r) {
-	#	$addresses[$r['ip_addr']]=$r;	
-	#}
-
-	#$calc = calculateSubnetDetailsNew ( transform2long($subnet['subnet']), $subnet['mask'], 0, 0, 0, 0 );
-	#$min = $subnet['subnet'];
-	#$max = $min + $calc['maxhosts'];
+	$devices = getDeviceIndexHostname('hostname');
+	$devices_id = getDeviceIndexHostname('id');	
 
 	$nedi = getDevicesFromNedi('device',NULL,false);
-	#$nodes = getNodesFromNedi ($min,$max,'ifip');
+
 	$glpi = getDevicesAddressFromGlpi('','','hostname');
 	
-	// add nodes on nedi list
-	#foreach($nodes as $k=>$n) {
-	#	if (!array_key_exists($k, $result)) {$result[$k]=$n;}
-	#}
+	$nedi_vlans = getVansFromNedi(NULL,NULL,NULL,false);
+	$vlans = getVansbyIndex();
+	if($vlans){
+		foreach($vlans as $k=>$v) {
+			foreach($v as $x=>$d) {
+				#print "<div class='alert alert-info'> id0: $d[vlanId] vlanid: $k switch: $x name: $d[name] switch name: ".$devices_id[$x]['hostname']."</div>";
+				if(array_key_exists($k, $nedi_vlans)){
+					#print "<div class='alert alert-info'> id1: $d[vlanId] vlanid: $k switch: $x name: $d[name] switch name: ".$devices_id[$x]['hostname']."</div>";
+					#print "<div class='alert alert-info'>Vlan ".$vlans[$k][$x]['name']." nedi_vlan ".$nedi_vlans[$k][$devices_id[$x]['hostname']]['vlanname']." devices_name ".$devices_id[$x]['hostname']." devices_id ".$devices_id[$x]['id']."</div>";
+					if(array_key_exists($x, $devices_id)){
+						#print "<div class='alert alert-info'> id2-1: $k switch: $x name: $d[name] switch name: ".$devices_id[$x]['hostname']."</div>";
+						if(array_key_exists($devices_id[$x]['id'], $nedi_vlans[$k])){
+							#print "<div class='alert alert-info'>".$vlans[$k][$x]['name']." ".$nedi_vlans[$k][$devices_id[$x]['hostname']]['vlanname']." ".$devices_id[$x]['hostname']." ".$devices_id[$x]['id']."</div>";
+							if($vlans[$k][$x]['name'] != $nedi_vlans[$k][$devices_id[$x]['hostname']]['vlanname']){
+								$update = $d;
+								$update['name'] = $nedi_vlans[$k][$devices_id[$x]['hostname']]['vlanname'];
+								$update['action'] = "edit";
+								updateVLANDetails($update);
+							}
+						}
+					}else{
+						#print "<div class='alert alert-info'> id2-2</div>";
+						$subnet = getSubnetDetailsByVlan($d[vlanId]);
+						if(array_key_exists($subnet['Device'], $devices)){
+							#print "<div class='alert alert-info'> id3: $k switch: $x name: $d[name] switch name: ".$subnet['Device']."</div>";
+							if(array_key_exists($subnet['Device'], $nedi_vlans[$k])){
+								#print "<div class='alert alert-info'> id4: $k switch: $x name: $d[name] switch name: ".$devices_id[$x]['hostname']."</div>";
+								if($vlans[$k][$x]['name'] != $nedi_vlans[$k][$subnet['Device']]['vlanname']){
+									$update = $d;
+									$update['name'] = $nedi_vlans[$k][$subnet['Device']]['vlanname'];
+									$update['action'] = "edit";
+									updateVLANDetails($update);
+								}
+							}
+						}
+						
+					}
+				}else{
+					
+				}
+			}
+		}
+	}
 	
 	if($devices){
 		foreach($devices as $k=>$a) {
@@ -106,6 +131,8 @@ $devices = getDeviceIndexHostname('hostname');
 				if((!$devices[$k]['vendor'] and $glpi[$k]['manufacturername']) or ($devices[$k]['vendor'] != $glpi[$k]['manufacturername'])){$device_up['vendor'] = $glpi[$k]['manufacturername'];$update = 1;}
 				#if((!$devices[$k]['description'] and $glpi[$k]['description']) or ($devices[$k]['description'] != $glpi[$k]['description'])){$device_up['description'] = $glpi[$k]['description'];$update = 1;}
 				if((!$devices[$k]['version'] and $glpi[$k]['version']) or ($devices[$k]['version'] != $glpi[$k]['version'])){$device_up['version'] = $glpi[$k]['version'];$update = 1;}
+				if((!$devices[$k]['glpi_id'] and $glpi[$k]['id']) or ($devices[$k]['glpi_id'] != $glpi[$k]['id'])){$device_up['glpi_id'] = $glpi[$k]['id'];$update = 1;}
+				if((!$devices[$k]['glpi_type'] and $glpi[$k]['tipo']) or ($devices[$k]['glpi_type'] != $glpi[$k]['tipo'])){$device_up['glpi_type'] = $glpi[$k]['tipo'];$update = 1;}
 				if ($update == 1){
 					$device_up['action'] = "edit";
 					$device_up['agent'] = "glpi";
@@ -130,13 +157,8 @@ $devices = getDeviceIndexHostname('hostname');
 				#print_r($device_up);
 				#print "</pre>";
 			}
-			#}else{
-			#	$devices[$k]['code'] = 0;
-				
-			#}
 		}
 	}
-#}
 	
 if($_POST){
 ?>
@@ -190,13 +212,13 @@ else {
 if($_POST['debug']==1) {
 	print "<hr>";
 	print "<pre>";
-	print_r($devices);
+	#print_r($devices);
 	print "</pre>";
 	print "<pre>";
-	print_r($glpi);
+	print_r($nedi_vlans);
 	print "</pre>";
 	print "<pre>up";
-	print_r($nedi);
+	print_r($devices);
 	print "</pre>";
 }
 }

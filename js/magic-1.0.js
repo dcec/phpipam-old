@@ -1726,7 +1726,7 @@ $(document).on("click", "#editSITEsubmit", function() {
 $(document).on("click", "#editSITEsubmittool", function() {
     showSpinner();
     var sitedata = $('form#siteManagementEdit').serialize();
-    $.post('site/tool/manageSiteEditResult.php', sitedata, function(data) {
+    $.post('site/tools/manageSiteEditResult.php', sitedata, function(data) {
         $('div.siteManagementEditResult').html(data).slideDown('fast');
         //reload after 2 seconds if succeeded!
         if(data.search("alert-danger") == -1)     { setTimeout(function (){window.location.reload();}, 1500); }
