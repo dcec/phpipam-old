@@ -58,6 +58,7 @@ else {
 	$html = array();
 	$children = array();
 	$rootId = 0;									# root is 0
+<<<<<<< HEAD
 	
 	foreach ( $sites as $item )
 			$children[$item['masterSiteId']][] = $item;
@@ -99,6 +100,49 @@ else {
 			$margin  = $margin."px";				
 		}
 	
+=======
+	
+	foreach ( $sites as $item )
+			$children[$item['masterSiteId']][] = $item;
+			
+	$loop  = !empty( $children[$rootId] );
+		
+		# initializing $parent as the root
+		$parent = $rootId;
+		
+		#$parent_stackF = array();
+		$parent_stack  = array();
+	
+	#print "<pre>";
+	#print_r($children);
+	#print "</pre>";
+	
+	while ( $loop && ( ( $option = each( $children[$parent] ) ) || ( $parent > $rootId ) ) )
+	{
+	#	print "<pre>";
+	#print_r($option);
+	#print "</pre>";
+		# repeat 
+		$repeat  = str_repeat( " - ", ( count($parent_stack)) );
+		# dashes
+		if(count($parent_stack) == 0)	{ $dash = ""; }
+		else							{ $dash = "-"; }
+
+		if(count($parent_stack) == 0) {
+			$margin = "0px";
+			$padding = "0px";
+		}
+		else {
+			# padding
+			$padding = "10px";			
+
+			# margin
+			$margin  = (count($parent_stack) * 10) -10;
+			$margin  = $margin *2;
+			$margin  = $margin."px";				
+		}
+	
+>>>>>>> 2279a70feee30023d3c47c26ddaad59ad46ab507
 		$count = count( $parent_stack ) + 1;
 		
 	//print details
@@ -109,8 +153,12 @@ else {
 	}else {
 		print "	<td class='level$count'><span class='structure' style='padding-left:$padding; margin-left:$margin;'></span><i class='fa fa-angle-right'></i>".$option['value']['name']."</td>";
 	}
+<<<<<<< HEAD
 	#print '	<td class="company">'. $option['value']['company'] .'</td>'. "\n";
 	print '<input type="hidden" name="company" value="'.$option['value']['company'] .'">';
+=======
+	print '	<td class="company">'. $option['value']['company'] .'</td>'. "\n";
+>>>>>>> 2279a70feee30023d3c47c26ddaad59ad46ab507
 	print '	<td class="location">'. $option['value']['location'] .'</td>'. "\n";
 	$master = subnetGetSITEdetailsById($option['value']['masterSiteId']);
 	if ($master['siteId']>0){
@@ -144,10 +192,16 @@ else {
 	}
 	print "	<td class='actions'>";
 	print "	<div class='btn-group'>";
+<<<<<<< HEAD
 	print "		<button class='btn btn-xs btn-default editSITE' data-action='add sub'   data-siteid='".$option['value']['siteId']."'><i class='fa fa-plus'></i></button>";
 	print "		<button class='btn btn-xs btn-default editSITE' data-action='edit'   data-siteid='".$option['value']['siteId']."'><i class='fa fa-pencil'></i></button>";
 	print "		<button class='btn btn-xs btn-default showSitePerm' data-action='show'   data-siteid='".$option['value']['siteId']."'><i class='fa fa-tasks'></i></button>";
 	print "		<button class='btn btn-xs btn-default editSITE' data-action='delete' data-siteid='".$option['value']['siteId']."'><i class='fa fa-times'></i></button>";
+=======
+	print "		<button class='btn btn-xs btn-default editSITE' data-action='edit'   data-siteid='$option[value][siteId]'><i class='fa fa-pencil'></i></button>";
+	print "		<button class='btn btn-xs btn-default showSitePerm' data-action='show'   data-siteid='$option[value][siteId]'><i class='fa fa-tasks'></i></button>";
+	print "		<button class='btn btn-xs btn-default editSITE' data-action='delete' data-siteid='$option[value][siteId]'><i class='fa fa-times'></i></button>";
+>>>>>>> 2279a70feee30023d3c47c26ddaad59ad46ab507
 	print "	</div>";
 	print "	</td>";	
 	print '</tr>'. "\n";

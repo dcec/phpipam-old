@@ -115,7 +115,11 @@ $(document).ready(function(){
 
 		foreach($custom as $field) {
 		
+<<<<<<< HEAD
 			
+=======
+			#if($site['masterSiteId'] = 0 || ( $site['masterSiteId'] > 0 && ($field['name'] != "ICCode" || $field['name'] != "NamingC "))){
+>>>>>>> 2279a70feee30023d3c47c26ddaad59ad46ab507
 			
 			# replace spaces
 		    $field['nameNew'] = str_replace(" ", "___", $field['name']);
@@ -197,9 +201,14 @@ $(document).ready(function(){
 						
 			print '	</td>'. "\n";
 			print '</tr>'. "\n";		
+<<<<<<< HEAD
 			}else{
 				print '<input type="hidden" name="'. $field['nameNew'] .'" value="'.$site[$field['name']].'">';
 			}
+=======
+			#}
+
+>>>>>>> 2279a70feee30023d3c47c26ddaad59ad46ab507
 		}
 	}
 	
@@ -212,9 +221,15 @@ $(document).ready(function(){
 	//print delete warning
 	if($_POST['action'] == "delete")	{ print "<div class='alert alert-warning'><strong>"._('Warning').':</strong> '._('removing SITE will also remove SITE reference from belonging subnets')."!</div>"; }
 
+<<<<<<< HEAD
 #print'<pre>';
 #print_r($site);
 #print'</pre>';
+=======
+print'<pre>';
+print_r($site);
+print'</pre>';
+>>>>>>> 2279a70feee30023d3c47c26ddaad59ad46ab507
 	?>
 </div>
 
