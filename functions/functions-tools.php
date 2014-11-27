@@ -1212,6 +1212,31 @@ function getAllUniqueDevices ($orderby = "hostname", $direction = "asc")
     return $devices;
 }
 
+/**
+ * Get all unique devices
+ */
+function getAllUniqueLines ($orderby = "hostname", $direction = "asc") 
+{
+
+
+    global $database;                                                                      
+    
+    /* get all vlans, descriptions and subnets */
+
+    $query   = "SELECT * from `devices` LEFT JOIN `deviceTypes` ON `devices`.`type` = `deviceTypes`.`tid` where tname = 'Line' order by `devices`.`$orderby` $direction;";	
+
+    /* execute */
+	#print ("<div class='alert alert-danger'>"._('Error').": $query</div>");
+    try { $devices = $database->getArray( $query ); }
+    catch (Exception $e) { 
+        $error =  $e->getMessage(); 
+        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
+        return false;
+    } 
+    
+    /* return unique devices */
+    return $devices;
+}
 
 /**
  * Get all unique devices - filter

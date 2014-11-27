@@ -1549,9 +1549,9 @@ table.changelog td {
      -moz-background-clip: padding-box;
           background-clip: padding-box;
 }
-.popup .pContent::-webkit-scrollbar { 
+/*.popup .pContent::-webkit-scrollbar { 
     display: none; 
-}
+}*/
 .popup .pHeader {
   	padding: 9px 15px;
   	border-bottom: 1px solid #eee;

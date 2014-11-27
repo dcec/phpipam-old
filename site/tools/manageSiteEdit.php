@@ -23,7 +23,7 @@ $site = subnetGetSITEdetailsById($_POST['siteId']); ####
 #			$children[$item['masterSiteId']][] = $item;
 #$loop  = !empty( $children[$rootId] );
 
-if ($_POST['action'] != "add") {
+if ($_POST['action'] != "add" || $_POST['action'] != "add sub") {
     $siteDataOld = subnetGetSITEdetailsById ($_POST['siteId']);
 }
 
@@ -47,8 +47,6 @@ else 							{ $formId = "siteManagementEdit"; }
 #print "<pre>";
 #print_r($site);
 #print "</pre>";
-#'Apac - Asia Pacific','Emea - North Europe','Emea - Middle Europe','Emea - Region South','Americas'
-#'Branch Office','Headquarter','Showroom','Shop','Warehouse','Business Unit'
 ?>
 
 
@@ -102,7 +100,7 @@ $(document).ready(function(){
     <tr>
         <td><?php print _('Master Site'); ?></td>
         <td>
-        	<?php printDropdownMenuByMasterSite($site['masterSiteId'],$site['siteId']); ?>
+        	<?php printDropdownMenuByMasterSite($site['masterSiteId']); ?>
         </td>
         <td class="info2"><?php print _('Enter master site if you want to nest it under existing site, or select root to create root site'); ?>!</td>
     </tr>

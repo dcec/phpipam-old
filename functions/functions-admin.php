@@ -2246,7 +2246,11 @@ function updateSelectedIPaddrFields($fields)
 function getCustomFields($table)
 {
     global $database;
-        
+    
+	if($table == "lines"){
+		$table = "devices";
+		$lines = 1;	
+	}
     /* first update request */
     $query    = "show full columns from `$table`;";
 
@@ -2274,6 +2278,9 @@ function getCustomFields($table)
 	}
 	elseif($table == "devices") {
 		unset($res['id'], $res['hostname'], $res['ip_addr'], $res['type'], $res['vendor'], $res['model'], $res['version'], $res['description'], $res['sections'], $res['editDate'], $res['siteId']);
+		if (!$lines){
+			unset($res['property'], $res['isp'], $res['line_type'], $res['speed'], $res['line_termination'], $res['business_contact'], $res['technical_contact'], $res['support_contact']);
+		}
 	}
 	elseif($table == "subnets") {
 		unset($res['id'], $res['subnet'], $res['mask'], $res['sectionId'], $res['description'], $res['masterSubnetId']);

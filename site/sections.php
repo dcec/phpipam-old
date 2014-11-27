@@ -157,6 +157,7 @@ $setFields = explode(";", $settings['IPfilter']);
 		print "		<li "; if($_REQUEST['adminId'] == "manageSection") 	print "class='active'"; print "><a href='administration/manageSection/'>"._('Sections')."</a></li>";
 		print "		<li "; if($_REQUEST['adminId'] == "manageSubnet") 	print "class='active'"; print "><a href='administration/manageSubnet/'>"._('Subnets')."</a></li>";
 		print "		<li "; if($_REQUEST['adminId'] == "manageDevices") 	print "class='active'"; print "><a href='administration/manageDevices/'>"._('Devices')."</a></li>";
+		print "		<li "; if($_REQUEST['adminId'] == "manageLines") 	print "class='active'"; print "><a href='administration/manageLines/'>"._('Lines')."</a></li>";
 		print "		<li "; if($_REQUEST['adminId'] == "manageVLANs") 	print "class='active'"; print "><a href='administration/manageVLANs/'>"._('VLANs')."</a></li>";
 		# vrf if enabled
 		if($settings['enableVRF'] == 1) { 

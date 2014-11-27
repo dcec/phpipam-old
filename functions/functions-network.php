@@ -2041,12 +2041,15 @@ function printDropdownMenuByMasterSite($masterSiteId = "0",$SiteId = "0")
 		$tmp[1]['name'] = _('+ Add new SITE');	
 		$tmp[1]['masterSiteId'] = 0;
 		
-		if($_POST['action'] != "add") {array_unshift($sites, $tmp[1]);}
+		if($_POST['action'] != "add" || $_POST['action'] != "add sub") {array_unshift($sites, $tmp[1]);}
 		#}
 		# sites
 		foreach ( $sites as $item )
 			$children[$item['masterSiteId']][] = $item;
 		
+		#print'<pre>';
+		#print_r($children);
+		#print'</pre>';
 		# loop will be false if the root has no children (i.e., an empty menu!)
 		$loop  = !empty( $children[$rootId] );
 		
@@ -2085,7 +2088,7 @@ function printDropdownMenuByMasterSite($masterSiteId = "0",$SiteId = "0")
 							
 			# count levels
 			$count = count( $parent_stack ) + 1;
-			
+			print "<p class='".$option['value']['name']."'>";
 			# print table line if it exists and it is not folder
 			if(strlen($option['value']['name']) > 0) { 
 				# selected
@@ -4129,11 +4132,11 @@ function getAllChangelogs($filter = false, $expr, $limit = 100)
 	    $query = "select * from (
 					select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`ip_addr`,'mask',`sectionId`,`subnetId`,`ip`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
 					from `changelog` as `c`, `users` as `u`,`ipaddresses` as `ip`,`subnets` as `su`
-					where `c`.`ctype` = 'ip_addr' and `c`.`cuser` = `u`.`id` and `c`.`coid`=`ip`.`id` and `ip`.`subnetId` = `su`.`id` order by `cid` limit $limit
+					where `c`.`ctype` = 'ip_addr' and `c`.`cuser` = `u`.`id` and `c`.`coid`=`ip`.`id` and `ip`.`subnetId` = `su`.`id` limit $limit
 					union all
 					select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`subnet`,`mask`,`sectionId`,'subnetId',`su`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
 					from `changelog` as `c`, `users` as `u`,`subnets` as `su`
-					where `c`.`ctype` = 'subnet' and  `c`.`cuser` = `u`.`id` and `c`.`coid`=`su`.`id` order by `cid` limit $limit	
+					where `c`.`ctype` = 'subnet' and  `c`.`cuser` = `u`.`id` and `c`.`coid`=`su`.`id` limit $limit	
 				) as `ips` 
 				where `coid`='$expr' or `ctype`='$expr' or `real_name` like '$expr' or `cdate` like '$expr' or `cdiff` like '$expr' or INET_NTOA(`ip_addr`) like '$expr'
 				order by `cid` desc limit $limit;";  		
@@ -4174,7 +4177,7 @@ function writeChangelog($ctype, $action, $result, $old, $new)
 	    
 	    # unset unneeded values and format
 	    if($ctype == "ip_addr") 	{ 
-	    	unset($new['action'], $new['subnet'], $new['type']);
+	    	unset($new['action'], $new['subnet'], $new['type'], $new['lastSeen']);
 	    } elseif($ctype == "subnet")	{ 
 	    	$new['id'] = $new['subnetId'];
 	    	unset($new['action'], $new['subnetId'], $new['location'], $new['vrfIdOld'], $new['permissions']);

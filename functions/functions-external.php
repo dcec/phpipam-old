@@ -1121,4 +1121,51 @@ function insertNediVlan($name,$number,$description,$switch)
     # default ok
     return true;
 }
+
+function printSite($site,$custom)
+{
+	print '	<td class="name">'. $site['name'] .'</td>'. "\n";
+	print '<input type="hidden" name="company" value="'.$site['company'] .'">';
+	print '	<td class="location">'. $site['location'] .'</td>'. "\n";
+	$master = subnetGetSITEdetailsById($site['masterSiteId']);
+	if ($master['siteId']>0){
+		print '	<td class="master">'. $master['name'] .'</td>'. "\n";
+	}else{
+		print '	<td class="master"></td>'. "\n";
+	}
+	
+	if(sizeof($custom) > 0) {
+		foreach($custom as $field) {
+
+			print "<td class='customField hidden-xs hidden-sm'>";
+					
+			//booleans
+			if($field['type']=="tinyint(1)")	{
+				if($site[$field['name']] == "0")		{ print _("No"); }
+				elseif($site[$field['name']] == "1")	{ print _("Yes"); }
+			} 
+			//text
+			elseif($field['type']=="text") {
+				if(strlen($site[$field['name']])>0)	{ print "<i class='fa fa-gray fa-comment' rel='tooltip' data-container='body' data-html='true' title='".str_replace("\n", "<br>", $site[$field['name']])."'>"; }
+				else											{ print ""; }
+			}
+			else {
+				print $site[$field['name']];
+				
+			}
+			print "</td>"; 
+
+		}
+	}
+	print "	<td class='actions'>";
+	print "	<div class='btn-group'>";
+	print "		<button class='btn btn-xs btn-default editSITE' data-action='add sub'   data-siteid='".$site['siteId']."'><i class='fa fa-plus'></i></button>";
+	print "		<button class='btn btn-xs btn-default editSITE' data-action='edit'   data-siteid='".$site['siteId']."'><i class='fa fa-pencil'></i></button>";
+	print "		<button class='btn btn-xs btn-default showSitePerm' data-action='show'   data-siteid='".$site['siteId']."'><i class='fa fa-tasks'></i></button>";
+	print "		<button class='btn btn-xs btn-default editSITE' data-action='delete' data-siteid='".$site['siteId']."'><i class='fa fa-times'></i></button>";
+	print "	</div>";
+	print "	</td>";	
+	print '</tr>'. "\n";
+	
+}
 ?>
