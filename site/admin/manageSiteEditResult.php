@@ -20,7 +20,7 @@ $settings = getAllSettings ();
 if($settings['siteDuplicate'] == "0") {
 if($site['action'] == "add") {
 	if(!getSITEbyName($site['name'])) 	{ }
-	else 									{ die('<div class="alert alert-danger">'._('SITE already exists').'!</div>'); }	
+	else 									{ die('<div class="alert alert-danger">'._('Site already exists').'!</div>'); }	
 }
 }
 
@@ -36,20 +36,20 @@ if(sizeof($myFields) > 0) {
 }
 
 /* sanitize post! */
-$site['name'] 		 = htmlentities($site['name'], ENT_COMPAT | ENT_HTML401, "UTF-8");			# prevent XSS
-$site['company'] 	 = htmlentities($site['company'], ENT_COMPAT | ENT_HTML401, "UTF-8");		# prevent XSS
-$site['location'] = htmlentities($site['location'], ENT_COMPAT | ENT_HTML401, "UTF-8");			# prevent XSS
+#$site['name'] 		 = htmlentities($site['name'], ENT_COMPAT | ENT_HTML401, "UTF-8");			# prevent XSS
+#$site['company'] 	 = htmlentities($site['company'], ENT_COMPAT | ENT_HTML401, "UTF-8");		# prevent XSS
+#$site['location'] = htmlentities($site['location'], ENT_COMPAT | ENT_HTML401, "UTF-8");			# prevent XSS
 
 /* Hostname must be present! */
 if($site['name'] == "") 					{ die('<div class="alert alert-danger">'._('Name is mandatory').'!</div>'); }
 
 /* update details */
 if($site['action']=="add") {
-	if(!updateSITEDetails($site, true)) 	{ print('<div class="alert alert-danger"  >'._("Failed to $site[action] SITE").'!</div>'); }
-	else 										{ print('<div class="alert alert-success">'._("SITE $site[action] successfull").'!</div><p id="siteidforonthefly" style="display:none">'.$id.'</p>'); }	
+	if(!updateSITEDetails($site, true)) 	{ print('<div class="alert alert-danger"  >'._("Failed to $site[action] Site").'!</div>'); }
+	else 										{ print('<div class="alert alert-success">'._("Site $site[action] successfull").'!</div><p id="siteidforonthefly" style="display:none">'.$id.'</p>'); }	
 } else {
-	if(!updateSITEDetails($site, false)) 		{ print('<div class="alert alert-danger"  >'._("Failed to $site[action] SITE").'!</div>'); }
-	else 										{ print('<div class="alert alert-success">'._("SITE $site[action] successfull").'!</div><p id="siteidforonthefly" style="display:none">'.$id.'</p>'); }
+	if(!updateSITEDetails($site, false)) 		{ print('<div class="alert alert-danger"  >'._("Failed to $site[action] Site").'!</div>'); }
+	else 										{ print('<div class="alert alert-success">'._("Site $site[action] successfull").'!</div><p id="siteidforonthefly" style="display:none">'.$id.'</p>'); }
 }
 
 ?>

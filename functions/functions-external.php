@@ -1121,8 +1121,7 @@ function insertNediVlan($name,$number,$description,$switch)
     # default ok
     return true;
 }
-
-function printSite($site,$custom)
+function printSite($site,$custom,$permission = 3,$class = 'editSITE')
 {
 	print '	<td class="name">'. $site['name'] .'</td>'. "\n";
 	print '<input type="hidden" name="company" value="'.$site['company'] .'">';
@@ -1159,10 +1158,10 @@ function printSite($site,$custom)
 	}
 	print "	<td class='actions'>";
 	print "	<div class='btn-group'>";
-	print "		<button class='btn btn-xs btn-default editSITE' data-action='add sub'   data-siteid='".$site['siteId']."'><i class='fa fa-plus'></i></button>";
-	print "		<button class='btn btn-xs btn-default editSITE' data-action='edit'   data-siteid='".$site['siteId']."'><i class='fa fa-pencil'></i></button>";
-	print "		<button class='btn btn-xs btn-default showSitePerm' data-action='show'   data-siteid='".$site['siteId']."'><i class='fa fa-tasks'></i></button>";
-	print "		<button class='btn btn-xs btn-default editSITE' data-action='delete' data-siteid='".$site['siteId']."'><i class='fa fa-times'></i></button>";
+	if($permission > "0"){print "		<button class='btn btn-xs btn-default ".$class."' data-action='add sub'   data-siteid='".$site['siteId']."'><i class='fa fa-plus'></i></button>";}
+	if($permission > "1"){print "		<button class='btn btn-xs btn-default ".$class."' data-action='edit'   data-siteid='".$site['siteId']."'><i class='fa fa-pencil'></i></button>";}
+	if($class == 'editSITE'){print "		<button class='btn btn-xs btn-default showSitePerm' data-action='show'   data-siteid='".$site['siteId']."'><i class='fa fa-tasks'></i></button>";}
+	if($permission > "2"){print "		<button class='btn btn-xs btn-default ".$class."' data-action='delete' data-siteid='".$site['siteId']."'><i class='fa fa-times'></i></button>";}
 	print "	</div>";
 	print "	</td>";	
 	print '</tr>'. "\n";
