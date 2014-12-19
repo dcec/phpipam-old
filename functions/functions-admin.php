@@ -1101,34 +1101,6 @@ function updateSubnetPermissions ($subnet)
 	return true;	
 }
 
-/**
- *	Update subnet permissions
- */
-function updateSitePermissions ($site)
-{
-    global $database;   
-
-    # replace special chars
-    $site['permissions'] = mysqli_real_escape_string($database, $site['permissions']);
-
-    # set querries for subnet and each slave
-    foreach($site['slaves'] as $slave) {
-    	$query .= "update `sites` set `permissions` = '$site[permissions]' where `siteId` = $slave;";	
-    	
-    	writeChangelog('site', 'perm_change', 'success', array(), array("permissions_change"=>"$site[permissions]", "siteId"=>$slave));
-    }
-    
-	# execute
-    try { $database->executeMultipleQuerries($query); }
-    catch (Exception $e) { 
-    	$error =  $e->getMessage(); 
-    	print('<div class="alert alert-danger">'._('Error').': '.$error.'</div>');
-    	return false;
-    }
-  
-	/* return true if passed */
-	return true;	
-}
 
 
 
@@ -1366,7 +1338,6 @@ function updateDeviceDetails($device)
    		$query .= ' "'. $device['model'] .'", "'. $device['version'] .'", "'. $device['description'] .'", "'. $device['sections'] .'", "'. $device['siteId'] .'" '. $myFieldsInsert['values'] .');'. "\n";
     }
     else if($device['action'] == "edit") {
-		
 		$device['description'] = mysqli_real_escape_string($database, $device['description']);
        # custom fields
         $myFields = getCustomFields('devices');
@@ -1766,126 +1737,7 @@ function updateVLANDetails($vlan, $lastId = false)
     else		{ return true; }
 }
 
-/* @SITE functions ---------------- */
 
-
-/**
- * Update SITE details
- */
-function updateSITEDetails($site, $lastId = false)
-{
-    global $database;
-
-    /* set querry based on action */
-    if($site['action'] == "add" || $site['action'] == "add sub") {
-    
-        # custom fields
-        $myFields = getCustomFields('sites');
-        $myFieldsInsert['query']  = '';
-        $myFieldsInsert['values'] = '';
-	
-		if (!isset($_SESSION)) {  session_start(); }
-		# redirect if not authenticated */
-		if (empty($_SESSION['ipamusername'])) 	{ return "0"; }
-		else									{ $username = $_SESSION['ipamusername']; }
-		
-		# get all user groups
-		$user = getUserDetailsByName ($username);
-		#print'<pre>';
-		#print_r($user);
-		#print'</pre>';
-		#print ("<div class='alert alert-info'>Query:$user,".$user['groups']."</div>");
-		$groups = json_decode($user['groups']);
-		$masterSite = subnetGetSITEdetailsById ($site['masterSiteId']);
-		if($user['role'] != "Administrator"){
-			$siteP = json_decode($masterSite['permissions']);
-			$sitePP = parseSectionPermissions($masterSite['permissions']);
-			foreach($siteP as $sk=>$sp) {
-				foreach($groups as $uk=>$up) {
-					if($uk == $sk) {
-						if($sp != "3") { $new = $sk; }
-					}	
-				}
-			}
-			$sitePP[$new] = "3";
-			$masterSite['permissions'] = json_encode($sitePP);
-		}
-        if(sizeof($myFields) > 0) {
-			/* set inserts for custom */
-			foreach($myFields as $myField) {	
-				# empty?
-				if(strlen($site[$myField['name']])==0) {		
-					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'`';
-					$myFieldsInsert['values'] .= ", NULL";
-				} else {
-					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'`';
-					$myFieldsInsert['values'] .= ", '". $site[$myField['name']] . "'";
-				}
-			}
-		}
-		$masterSite['permissions'] = mysqli_real_escape_string($database, $masterSite['permissions']);
-    	$query  = 'insert into `sites` '. "\n";
-    	$query .= '(`name`,`company`,`location`,`masterSiteId`,`permissions` '.$myFieldsInsert['query'].') values '. "\n";
-   		$query .= '("'. $site['name'] .'", "'. $site['company'] .'", "'. $site['location'] .'", "'. $site['masterSiteId'] .'", "'. $masterSite['permissions'] .'" '. $myFieldsInsert['values'] .' ); '. "\n";
-
-    }
-    else if($site['action'] == "edit") {
-    
-        # custom fields
-        $myFields = getCustomFields('sites');
-        $myFieldsInsert['query']  = '';
-	
-        if(sizeof($myFields) > 0) {
-			/* set inserts for custom */
-			foreach($myFields as $myField) {
-				if(strlen($site[$myField['name']])==0) {
-					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'` = NULL ';				
-				} else {
-					$myFieldsInsert['query']  .= ', `'. $myField['name'] .'` = "'.$site[$myField['name']].'" ';					
-				}		
-			}
-		}
-    
-    	$query  = 'update `sites` set '. "\n";    
-    	$query .= '`name` = "'. $site['name'] .'", `company` = "'. $site['company'] .'", `location` = "'. $site['location'] .'", `masterSiteId` = "'. $site['masterSiteId'] .'" '. "\n";   
-    	$query .= $myFieldsInsert['query'];  
-    	$query .= 'where `siteId` = "'. $site['siteId1'] .'";'. "\n";    
-    }
-    else if($site['action'] == "delete") {
-    	$query  = 'delete from `sites` where `siteId` = "'. $site['siteId1'] .'";'. "\n";
-    }
-    
-	#print ("<div class='alert alert-danger'>Query: ".$query.": $error</div>");
-    /* execute */
-    try { $res = $database->executeQuery( $query, true ); }
-    catch (Exception $e) { 
-        $error =  $e->getMessage(); 
-        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
-   		updateLogTable ('SITE ' . $site['action'] .' failed ('. $site['name'] . ')'.$error, $log, 2);
-    	return false;
-    }
-    
-    # if delete also NULL all subnets!
-    if($site['action'] == 'delete') {
-	    $query = "update `subnets` set `siteId` = NULL where `siteId` = '$site[siteId]';";
-	    /* execute */
-	    try { $database->executeQuery( $query ); }
-	    catch (Exception $e) {
-    		$error =  $e->getMessage();
-    		print ('<div class="alert alert-danger alert-absolute">'.$error.'</div>');
-    	}
-    }
-    
-    /* prepare log */ 
-    $log = prepareLogFromArray ($site);
-    
-    /* return success */
-    updateLogTable ('SITE ' . $site['action'] .' success ('. $site['name'] . ')', $log, 0);
-    
-    /* response */
-    if($lastId)	{ return $res; }
-    else		{ return true; }
-}
 
 
 
@@ -2246,6 +2098,10 @@ function getCustomFields($table)
 {
     global $database;
         
+	if($table == "lines"){
+	$table = "devices";
+	$lines = 1;
+	}
     /* first update request */
     $query    = "show full columns from `$table`;";
 
@@ -2273,6 +2129,9 @@ function getCustomFields($table)
 	}
 	elseif($table == "devices") {
 		unset($res['id'], $res['hostname'], $res['ip_addr'], $res['type'], $res['vendor'], $res['model'], $res['version'], $res['description'], $res['sections'], $res['editDate'], $res['siteId']);
+		if (!$lines){
+			unset($res['property'], $res['isp'], $res['line_type'], $res['speed'], $res['line_termination'], $res['business_contact'], $res['technical_contact'], $res['support_contact']);
+		}
 	}
 	elseif($table == "subnets") {
 		unset($res['id'], $res['subnet'], $res['mask'], $res['sectionId'], $res['description'], $res['masterSubnetId']);
@@ -2287,7 +2146,7 @@ function getCustomFields($table)
 		unset($res['vlanId'], $res['name'], $res['number'], $res['description'], $res['switch'],$res['editDate']);		
 	}
 	elseif($table == "sites") {
-		unset($res['siteId'], $res['name'], $res['company'], $res['location'],$res['permissions'],$res['editDate'], $res['masterSiteId'], $res['glpi_id']);
+		unset($res['siteId'], $res['name'], $res['company'], $res['location'],$res['permissions'],$res['editDate'], $res['masterSiteId'], $res['glpi_id'], $res['glpi_location_id'], $res['glpi_entities_id'], $res['used']);
 	}
 	
 	return $res;

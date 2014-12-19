@@ -197,7 +197,6 @@ function checkIpv6AddressType ($subnet)
  */
 function updateLogTable ($command, $details = NULL, $severity = 0)
 {
-
 	# for db upgrade!
 	if(strpos($_SERVER['SCRIPT_URI'], "databaseUpgrade.php")>0) {
 		global $db;
@@ -209,21 +208,15 @@ function updateLogTable ($command, $details = NULL, $severity = 0)
     
     /* set variable */
     $date = date("Y-m-d H:i:s");
-
     $user = getActiveUserDetails();
     $user = $user['username'];
-
-
-
     
     /* set query */
     $query  = 'insert into logs '. "\n";
     $query .= '(`severity`, `date`,`username`,`ipaddr`,`command`,`details`)'. "\n";
     $query .= 'values'. "\n";
     $query .= '("'.  $severity .'", "'. $date .'", "'. $user .'", "'. $_SERVER['REMOTE_ADDR'] .'", "'. $command .'", "'. $details .'");';
-
-
-    #print ("<div class='alert alert-danger'>"._('Error').": $query</div>");  
+ 
     /* execute */
     try {
     	$database->executeQuery($query);
@@ -242,8 +235,6 @@ function updateLogTable ($command, $details = NULL, $severity = 0)
  */
 function getLogByID ($logId)
 {
-
-
     global $database;                                                                      
     /* set query */
     $query  = "select * from `logs` where `id` = '$logId';";
@@ -264,8 +255,6 @@ function getLogByID ($logId)
  */
 function getAllLogs($logCount, $direction = NULL, $lastId = NULL, $highestId = NULL, $informational, $notice, $warning, $filter = NULL)
 {
-
-
     global $database;                                                                      
 
 	/* query start */
@@ -296,7 +285,6 @@ function getAllLogs($logCount, $direction = NULL, $lastId = NULL, $highestId = N
 	$query .= ') as test '. "\n";
 	$query .= 'order by `id` desc limit '. $logCount .';'. "\n";
 
-
     /* execute */
     try { $logs = $database->getArray($query); }
     catch (Exception $e) {
@@ -315,8 +303,6 @@ function getAllLogs($logCount, $direction = NULL, $lastId = NULL, $highestId = N
  */
 function getAllLogsForExport()
 {
-
-
     global $database;                                                                      
 
 	/* increase memory size */
@@ -341,8 +327,6 @@ function getAllLogsForExport()
  */
 function clearLogs()
 {
-
-
     global $database;                                                                      
 	
 	/* query start */
@@ -365,8 +349,6 @@ function clearLogs()
  */
 function countAllLogs ()
 {
-
-
     global $database;                                                                      
 
     /* set query */
@@ -408,8 +390,6 @@ function prepareLogFromArray ($logs)
  */
 function getHighestLogId()
 {
-
-
     global $database;                                                                      
 
     /* set query */
@@ -627,8 +607,6 @@ function printToolsSubnets( $subnets, $custom )
  */
 function searchAddresses ($query)
 {
-
-
     global $database;                                                                      
 
     /* execute */
@@ -649,8 +627,6 @@ function searchAddresses ($query)
  */
 function searchSubnets ($searchterm, $searchTermEdited = "")
 {
-
-
     global $database;                                                                      
     
     # get custom subnet fields
@@ -716,8 +692,6 @@ function searchSubnets ($searchterm, $searchTermEdited = "")
  */
 function searchVLANs ($searchterm)
 {
-
-
     global $database;                                                                      
 
     # get custom VLAN fields
@@ -746,40 +720,7 @@ function searchVLANs ($searchterm)
     return $search;
 }
 
-/**
- * Search VLANS
- */
-function searchDevices ($searchterm)
-{
 
-
-    global $database;                                                                      
-
-    # get custom device fields
-    $myFields = getCustomFields('devices');
-    $custom  = '';
-
-    if(sizeof($myFields) > 0) {
-		/* set inserts for custom */
-		foreach($myFields as $myField) {			
-			$custom  .= ' or `'.$myField['name'].'` like "%'.$searchterm.'%" ';
-		}
-	}
-    /* set query */    
-	$query = 'select * from `devices` LEFT JOIN `deviceTypes` ON `devices`.`type` = `deviceTypes`.`tid` where `hostname` like "%'. $searchterm .'%" or `ip_addr` like "%'. $searchterm .'%" or `vendor` like "%'. $searchterm .'%"';
-	$query .= ' or `model` like "%'. $searchterm .'%" or `version` like "%'. $searchterm .'%" or `description` like "%'. $searchterm .'%"  or `tname` like "%'. $searchterm .'%" '.$custom.';';
-    /* execute */
-	#print ("<div class='alert alert-danger'>"._('Error').": $query</div>");
-    try { $search = $database->getArray( $query ); }
-    catch (Exception $e) { 
-        $error =  $e->getMessage(); 
-        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
-        return false;
-    } 
-    
-    /* return result */
-    return $search;
-}
 
 /**	
  * Reformat incomplete IPv4 address to decimal for search!
@@ -902,11 +843,9 @@ function reformatIPv6forSearch ($ip)
  */
 function isIPalreadyRequested($ip)
 {
-
     global $database;                                                                      
     /* set query, open db connection and fetch results */
     $query    = 'select * from requests where `ip_addr` = "'. $ip .'" and `processed` = 0;';
-
 
     /* execute */
     try { $details = $database->getArray( $query ); }
@@ -927,7 +866,6 @@ function isIPalreadyRequested($ip)
  */
 function countRequestedIPaddresses()
 {
-
 	# check if already in cache
 	if($vtmp = checkCache("openrequests", 0)) {
 		return $vtmp;
@@ -938,8 +876,6 @@ function countRequestedIPaddresses()
 	    global $database;                                                                      
 	    /* set query, open db connection and fetch results */
 	    $query    = 'select count(*) from requests where `processed` = 0;';
-
-
 		 
 	    /* execute */
 	    try { $details = $database->getArray( $query ); }
@@ -947,8 +883,6 @@ function countRequestedIPaddresses()
 	        $error =  $e->getMessage(); 
 	        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
 	        return false;
-
-
 	    } 
 	    
 	    # save to cche
@@ -965,11 +899,9 @@ function countRequestedIPaddresses()
  */
 function getAllActiveIPrequests()
 {
-
     global $database;                                                                      
     /* set query, open db connection and fetch results */
     $query    = 'select * from requests where `processed` = 0 order by `id` desc;';
-
 
     /* execute */
     try { $activeRequests = $database->getArray( $query ); }
@@ -988,32 +920,10 @@ function getAllActiveIPrequests()
  */
 function getAllIPrequests($limit = 20)
 {
-
     global $database;                                                                      
     /* set query, open db connection and fetch results */
     $query    = 'select * from requests order by `id` desc;';
 
-
-    /* execute */
-    try { $activeRequests = $database->getArray( $query ); }
-    catch (Exception $e) { 
-        $error =  $e->getMessage(); 
-        print ("<div class='alert alert-danger'>"._('Error').": $error</div>");
-        return false;
-    } 
-    
-    return $activeRequests;
-}
-
-
-function getAllReservedIPrequests($days)
-{
-    global $db;                                                                      # get variables from config file
-    /* set query, open db connection and fetch results */
-    $query    = 'select *,DATE_ADD(editDate,INTERVAL 60 DAY) as endDate from requests left join ipaddresses on ipaddresses.requestId = requests.id where processed = 1 and ipaddresses.state = 2 and DATEDIFF(now(),editDate)>'.$days.';';
-    $database = new database($db['host'], $db['user'], $db['pass'], $db['name']);  
-
-	#print ("<div class='alert alert-danger'>".$query."</div>");
     /* execute */
     try { $activeRequests = $database->getArray( $query ); }
     catch (Exception $e) { 
@@ -1031,11 +941,9 @@ function getAllReservedIPrequests($days)
  */
 function getIPrequestById ($id)
 {
-
     global $database;                                                                      
     /* set query, open db connection and fetch results */
     $query    = 'select * from requests where `id` = "'. $id .'";';
-
     $activeRequests  = $database->getArray($query); 
 
     /* execute */
@@ -1054,8 +962,6 @@ function getIPrequestById ($id)
  */
 function addNewRequest ($request)
 {
-
-
     global $database;                                                                        
 
     # replace special chars for description
@@ -1091,8 +997,6 @@ function addNewRequest ($request)
  */
 function rejectIPrequest($id, $comment)
 {
-
-
     global $database;                                                                      
     
     /* set query */
@@ -1117,8 +1021,6 @@ function rejectIPrequest($id, $comment)
  */
 function acceptIPrequest($request)
 {
-
-
     global $database;                                                                      
     
     /* first update request */
@@ -1191,16 +1093,13 @@ function acceptIPrequest($request)
  */
 function getAllUniqueDevices ($orderby = "hostname", $direction = "asc") 
 {
-
-
     global $database;                                                                      
     
     /* get all vlans, descriptions and subnets */
 
-    $query   = "SELECT * from `devices` LEFT JOIN `deviceTypes` ON `devices`.`type` = `deviceTypes`.`tid` where tname != 'Line' order by `devices`.`$orderby` $direction;";	
+    $query   = "SELECT * from `devices` LEFT JOIN `deviceTypes` ON `devices`.`type` = `deviceTypes`.`tid` where tname not like 'Line%' order by `devices`.`$orderby` $direction;";	
 
     /* execute */
-	#print ("<div class='alert alert-danger'>"._('Error').": $query</div>");
     try { $devices = $database->getArray( $query ); }
     catch (Exception $e) { 
         $error =  $e->getMessage(); 
@@ -1218,8 +1117,6 @@ function getAllUniqueDevices ($orderby = "hostname", $direction = "asc")
  */
 function getAllUniqueDevicesFilter ($field, $search, $orderby = "hostname", $direction = "asc") 
 {
-
-
     global $database;                                                                      
     
     /*query */
@@ -1244,8 +1141,6 @@ function getAllUniqueDevicesFilter ($field, $search, $orderby = "hostname", $dir
  */
 function getDeviceDetailsById($id) 
 {
-
-
     global $database;                                                                      
     
     /* get all vlans, descriptions and subnets */
@@ -1270,8 +1165,6 @@ function getDeviceDetailsById($id)
  */
 function getAllDeviceTypes () 
 {
-
-
     global $database;                                                                      
     
     /* get all vlans, descriptions and subnets */
@@ -1295,8 +1188,6 @@ function getAllDeviceTypes ()
  */
 function getTypeDetailsById($id) 
 {
-
-
     global $database;                                                                      
     
     /* get all vlans, descriptions and subnets */
@@ -1333,8 +1224,6 @@ function getTypeDetailsById($id)
  */
 function fetchInstructions () 
 {
-
-
     global $database;                                                                      
 
 	/* execute query */
@@ -1378,8 +1267,6 @@ function getLatestPHPIPAMversion()
  */
 function updatePHPIPAMversionCheckTime()
 {
-
-
     global $database;                                                                      
 	$query 		 = "update `settings` set `vcheckDate` = '".date("Y-m-d H:i:s")."';";
 	
