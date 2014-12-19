@@ -21,6 +21,76 @@ if ($mysqli->connect_errno) {
 }
 $subnetIds = array();
 $debug = $_POST['debug'];
+
+$link = mssql_connect('10.55.32.37','usrneteye','M0nitoring');
+#$query_version="select SERVERPROPERTY('productversion') VER";
+$query = "SELECT RangeFrom,
+City,
+Company,
+LocationType,
+NamingConvention,
+NetworkType,
+Partner,
+Zone,
+Company,
+Profile,
+low_ip_int,
+up_ip_int
+from RANGE_NETWORK where NetworkType != 'Reserved'";
+
+$query = "SELECT *
+from RANGE_NETWORK ";
+$res = mssql_query($query,$link);
+
+function mask2cidr($mask){  
+     $long = ip2long($mask);  
+     $base = ip2long('255.255.255.255');  
+     return 32-log(($long ^ $base)+1,2);       
+}  
+$subnets = getSubnetsIndex('subnet');
+#$bilog = mssql_fetch_array($res,MSSQL_ASSOC);
+
+#while ($row = mssql_fetch_array($res)) {
+#	$bilog[] = $row;
+#}
+#$query = mssql_query('SELECT * FROM mytable');
+$bilog = array();
+if (mssql_num_rows($res)) {
+    while ($row = mssql_fetch_assoc($res)) {
+		$row['cidr'] = mask2cidr($row['SM']);
+		#$subnet = $row['low_ip_int'] - 1;
+		$subnet = sprintf('%u', ip2long($row['Lan']));
+		#$subnet = ip2long($row['Lan']);
+		#if (($subnet = $row['low_ip_int'] - 1) < 0){ $subnet += 4294967296 ;} 
+        $bilog[$subnet] = $row;	
+    }
+}
+
+if($subnets){
+	foreach($subnets as $k=>$a) {
+		if (array_key_exists($k, $bilog)) {
+			if ($subnets[$k]['mask'] == $bilog[$k]['cidr']){			
+				unset($bilog[$k]);
+			}
+		}
+	}
+}
+
+foreach($bilog as $k=>$r) {
+	$result[$k]['subnet'] = $k;
+	$result[$k]['mask'] = $r['cidr'];
+	$result[$k]['gateway'] = $r['DG'];
+	$result[$k]['description'] = $r['LocationType'] . " " . $r['City'];
+}
+
+if(sizeof($result)>0) {
+	#if(insertNediSubnetsResults($result,$_REQUEST['subnetId'])) {
+	#	print "<div class='alert alert-success'>"._("Scan results added to database")."!</div>";
+	#}
+}
+#mssql_free_result($query);
+
+
 if($_POST){
 	/* verify that user is logged in */
 	isUserAuthenticated(true);
@@ -215,10 +285,10 @@ if($_POST['debug']==1) {
 	#print_r($devices);
 	print "</pre>";
 	print "<pre>";
-	print_r($nedi_vlans);
+	#print_r($nedi_vlans);
 	print "</pre>";
 	print "<pre>up";
-	print_r($devices);
+	print_r($result);
 	print "</pre>";
 }
 }

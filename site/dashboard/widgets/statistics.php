@@ -21,8 +21,7 @@ $IPv6Count = getNuberOfIPv6Addresses();
 
 /* get All users */
 $userCount = getNumberOfUsers();
-
-$LoggedinUser = getLoggedInUser();
+$LoggedinUser = getNumberOfLoggedInUser();
 ?>
 
 

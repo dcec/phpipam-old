@@ -242,7 +242,7 @@ foreach($subnetIds as $subnetId) {
 								$device_add = $device[$result[$k]['device']];
 								$device_add['hostname'] = $result[$k]['device'];
 								$device_add['description'] = $result[$k]['description'];
-								$device_add['action'] = "add";$device_add['agent'] = "UpdateNeDi";
+								$device_add['action'] = "add";$device_add['agent'] = "NeDi";
 								$device_add['ip_addr'] = Transform2long($device[$result[$k]['device']][ip_addr]);
 								$device_add['sections'] = $subnet['sectionId'];
 								$device_add['siteId'] = $subnet['siteId'];

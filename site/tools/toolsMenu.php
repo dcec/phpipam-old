@@ -32,7 +32,7 @@ $setFields = explode(";", $setFieldsTemp);
 			<a href="tools/instructions/"><i class="fa fa-angle-right pull-right icon-gray"></i> <?php print _('Instructions'); ?></a>
 		</li>   
 	    <?php # if vrf enabled
-	    if($settings['enableChangelog'] == 1) { ?> 
+	    if($settings['enableChangelog'] == 1 && checkAdmin(false)) { ?> 
 		<li class="list-group-item <?php if($_REQUEST['toolsId'] == "changelog") print "active"; ?>">
 			<a href="tools/changelog/"><i class="fa fa-angle-right pull-right icon-gray"></i> <?php print _('Changelog'); ?></a>
 		</li>

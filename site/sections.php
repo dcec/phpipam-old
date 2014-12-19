@@ -157,7 +157,6 @@ $setFields = explode(";", $settings['IPfilter']);
 		print "		<li "; if($_REQUEST['adminId'] == "manageSection") 	print "class='active'"; print "><a href='administration/manageSection/'>"._('Sections')."</a></li>";
 		print "		<li "; if($_REQUEST['adminId'] == "manageSubnet") 	print "class='active'"; print "><a href='administration/manageSubnet/'>"._('Subnets')."</a></li>";
 		print "		<li "; if($_REQUEST['adminId'] == "manageDevices") 	print "class='active'"; print "><a href='administration/manageDevices/'>"._('Devices')."</a></li>";
-		print "		<li "; if($_REQUEST['adminId'] == "manageLines") 	print "class='active'"; print "><a href='administration/manageLines/'>"._('Lines')."</a></li>";
 		print "		<li "; if($_REQUEST['adminId'] == "manageVLANs") 	print "class='active'"; print "><a href='administration/manageVLANs/'>"._('VLANs')."</a></li>";
 		# vrf if enabled
 		if($settings['enableVRF'] == 1) { 
@@ -199,7 +198,7 @@ $setFields = explode(";", $settings['IPfilter']);
 			    	print "	<li "; if($_REQUEST['toolsId'] == "search") 	print "class='active'"; print "><a href='tools/search/'>"._('Search')."</a></li>"; 
 			    	print "	<li "; if($_REQUEST['toolsId'] == "instructions") 	print "class='active'"; print "><a href='tools/instructions/'>"._('Show IP addressing guide')."</a></li>"; 
 			    	print "	<li "; if($_REQUEST['toolsId'] == "favourites") print "class='active'"; print "><a href='tools/favourites/'>"._('Favourite networks')."</a></li>"; 
-			    	if($settings['enableChangelog'] == 1) {								# print enableChangelog if enabled
+			    	if($settings['enableChangelog'] == 1 && checkAdmin(false)) {								# print enableChangelog if enabled
 			    	print "	<li "; if($_REQUEST['toolsId'] == "changelog")  print "class='active'"; print "><a href='tools/changelog/'>"._('Changelog')."</a></li>"; 
 					}
 			    	print "	<li class='divider'></li>";
@@ -260,7 +259,7 @@ $setFields = explode(";", $settings['IPfilter']);
 			    	print "	<li "; if($_REQUEST['toolsId'] == "subnets") 	print "class='active'"; print "><a href='tools/subnets/'>"._('Subnets')."</a></li>"; 
 			    	print "	<li "; if($_REQUEST['toolsId'] == "search") 	print "class='active'"; print "><a href='tools/search/'>"._('Search')."</a></li>"; 
 			    	print "	<li "; if($_REQUEST['toolsId'] == "favourites") print "class='active'"; print "><a href='tools/favourites/'>"._('Favourite networks')."</a></li>"; 
-			    	if($settings['enableChangelog'] == 1) {								# print enableChangelog if enabled
+			    	if($settings['enableChangelog'] == 1 && checkAdmin(false)) {								# print enableChangelog if enabled
 			    	print "	<li "; if($_REQUEST['toolsId'] == "changelog")  print "class='active'"; print "><a href='tools/changelog/'>"._('Changelog')."</a></li>"; 
 					}
 			    	print "	<li class='divider'></li>";
@@ -308,9 +307,9 @@ $setFields = explode(";", $settings['IPfilter']);
 			else {
 				//new
 				if ($settings['version'] < $version) {						
-					print "<li>";
-					print "	<a href='administration/versionCheck/' class='icon-li btn-warning' rel='tooltip' data-placement='bottom' title='"._('New version available')."'><i class='fa fa-bullhorn'></i><sup>$version</sup></a>";
-					print "</li>";	
+					#print "<li>";
+					#print "	<a href='administration/versionCheck/' class='icon-li btn-warning' rel='tooltip' data-placement='bottom' title='"._('New version available')."'><i class='fa fa-bullhorn'></i><sup>$version</sup></a>";
+					#print "</li>";	
 				}	
 				//nothing new
 				else {

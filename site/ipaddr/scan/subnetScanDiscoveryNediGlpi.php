@@ -468,8 +468,9 @@ if($_POST['debug']==1) {
 	$toemail = implode(',',$toemail);
 	#print '<div class="alert alert-danger">'._('Sending mail failed').'!'.$sender['email'].'</div>';
 	$content .= "\nThese new ip are not yet added!";
-	if(!sendIPnotifEmail($toemail, $title, $content))	{ print _('Sending mail failed')."!\n"; }
-	else												{ print _('Sending mail succeeded')."!\n"; }
-
+	if ($total){
+		if(!sendIPnotifEmail($toemail, $title, $content))	{ print _('Sending mail failed')."!\n"; }
+		else												{ print _('Sending mail succeeded')."!\n"; }
+	}
 }
 ?>

@@ -94,14 +94,7 @@ while ( $loop && ( ( $option = each( $children[$parent] ) ) || ( $parent > $root
 		$array['name'][$option['value']['name']]['locations_id'] = $option['value']['masterSiteId'];
 		$array['name'][$option['value']['name']]['completename'] = $completename;
 		$array['siteId'][$option['value']['siteId']] = $array['name'][$option['value']['name']];
-		#$printSITE = $option['value']['name'];
-
-		#if(!empty($option['value']['company']) && strlen($option['value']['name']) < 25) { $printSITE .= " (".$option['value']['company'].")"; }
-
-		#if ($permission > 0 || $option['value']['siteId'] == "Add"){
-		#if($option['value']['siteId'] == $subnetSiteId) 	{ $html[] = "<option value='".$option['value']['siteId']."' selected='selected'>$repeat ".$printSITE."</option>"; }
-		#else 	{ $html[] = "<option value='".$option['value']['siteId']."'>$repeat ".$printSITE."</option>"; }
-		#}
+		$array['name'][$option['value']['name']]['glpi_location_id'] = $option['value']['glpi_location_id'];
 	}
 	
 	if ( $option === false ) { $parent = array_pop( $parent_stack ); }
@@ -121,6 +114,7 @@ foreach($array['name'] as $k=>$a) {
 		if( $location_glpi['name'][$k]['name'] != $a['name']){$glpi_update['name']=$a['name'];}
 		if( $location_glpi['name'][$k]['completename'] != $a['completename']){$glpi_update['completename']=$a['completename'];}
 		if( $location_glpi['name'][$k]['level'] != $a['level']){$glpi_update['level']=$a['level'];}
+		#if( $location_glpi['name'][$k]['id'] != $a['glpi_location_id']){$glpi_update['glpi_location_id']=$a['glpi_location_id'];}
 		
 		if($a['masterSiteId'] == '0' && $location_glpi['name'][$k]['locations_id'] != '0'){$glpi_update['locations_id']='0';}
 		if($a['masterSiteId'] > 0){
@@ -142,7 +136,8 @@ foreach($array['name'] as $k=>$a) {
 			$glpi_update['locations_id']=$location_glpi['name'][$name_p]['id'];
 		}else{$glpi_update['locations_id']='0';}
 		$glpi_update['comment'] = "Added by Ipam";
-		insertLocationsOnGlpi($glpi_update);
+		$id = insertLocationsOnGlpi($glpi_update);
+		
 	}
 }
 	
@@ -235,11 +230,12 @@ foreach($subnetIds as $subnetId) {
 						$ip['lastSeen'] = $lastseen[$k]['lastSeen'];
 						#print "<div class='alert alert-info'>".$lastseen[$k]['lastSeen'] ." != ". $addresses[$k]['lastSeen']."</div>";
 						}
+						$result[$k]['commments'] = preg_replace("/\r\n|\r|\n/",' ',$result[$k]['commments']);  
 						if(!$addresses[$k]['mac']){$update[$k]['mac'] = $result[$k]['macaddress'];$ip['mac'] = $result[$k]['macaddress'];}
 						if(!$addresses[$k]['port']){$update[$k]['port'] = $result[$k]['portname'];$ip['port'] = $result[$k]['portname'];}
 						if($addresses[$k]['description'] != $result[$k]['commments'] && !preg_match("/Swap:/", $result[$k]['commments'])){
 							$update[$k]['description'] = $result[$k]['commments'];$ip['description'] = $result[$k]['commments'];
-							#print ("<div class='alert alert-info'>".$addresses[$k]['description'] ."!=". $result[$k]['commments']."</div>");
+							print ("<div class='alert alert-info'>".$addresses[$k]['description'] ."!=". $result[$k]['commments']."</div>");
 						}
 						#print "<div class='alert alert-info'>".$addresses[$k]['ip_addr'] ." != ". $addresses[$k]['switch']."</div>";
 						#if(!$addresses[$k]['description']){$update[$k]['description'] = $result[$k]['manufacturername'];$ip['description'] = $result[$k]['manufacturername'];}commments
@@ -257,14 +253,12 @@ foreach($subnetIds as $subnetId) {
 								$device_add = $result[$k];
 								$device_add['hostname'] = $result[$k]['hostname'];
 								#$device_add['description'] = $r['description'];
-								$device_add['action'] = "add";$device_add['agent'] = "UpdateGlpi";
+								$device_add['action'] = "add";$device_add['agent'] = "glpi";
 								$device_add['ip_addr'] = $result[$k]['ip_src'];
 								$device_add['sections'] = $subnet['sectionId'];
 								$device_add['siteId'] = $subnet['siteId'];
 								$device_add['type'] = ($result[$k]['type'])?$result[$k]['type']:"10";
 								$device_add['vendor'] = $result[$k]['manufacturername'];
-								$device_add['glpi_id'] = $result[$k]['id'];
-								$device_add['glpi_type'] = $result[$k]['tipo'];
 								updateDeviceDetails($device_add);
 								$devices = getDeviceIndexHostname('hostname');	
 							}

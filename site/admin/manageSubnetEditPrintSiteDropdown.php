@@ -31,6 +31,31 @@ isUserAuthenticated(false);
 		$parent_stack = array();
 		$allParentss = getAllSiteParents ($subnetDataOld['siteId']);
 		
+
+		#$tmp[0]['siteId'] = 0;
+		#$tmp[0]['name'] = _('No SITE');
+		
+		## on-the-fly
+		#$tmp[1]['siteId'] = 'Add';
+		#$tmp[1]['name'] = _('+ Add new SITE');	
+		
+		#array_unshift($sites, $tmp[0]);
+		#array_unshift($sites, $tmp[1]);
+
+		#foreach($sites as $site) {
+		#	$permission = checkSitePermission ($site['siteId']);
+		#	if(($permission != "0" || $site['siteId'] == 'Add') && $site['name']) {
+		#	/* set structure */
+		#	$printSITE = $site['name'];
+		#	
+		#	if(!empty($site['company']) && strlen($site['name']) < 25) { $printSITE .= " ($site[company])"; }
+		#	
+		#	/* selected? */
+		#	if($subnetDataOld['siteId'] == $site['siteId']) { print '<option value="'. $site['siteId'] .'" selected>'. $printSITE .'</option>'. "\n"; }
+		#	elseif($_POST['siteId'] == $site['siteId']) 	{ print '<option value="'. $site['siteId'] .'" selected>'. $printSITE .'</option>'. "\n"; }
+		#	else 											{ print '<option value="'. $site['siteId'] .'">'. $printSITE .'</option>'. "\n"; }
+		#	}
+		#}
 		while ( $loop && ( ( $option = each( $children[$parent] ) ) || ( $parent > $rootId ) ) )
 		{
 			# repeat 

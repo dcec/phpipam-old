@@ -31,7 +31,7 @@ if ($_POST['action'] == "add sub") {
     $site['masterSiteId'] = $site['siteId'];
 	unset($site['siteId']);
 	unset($site['LocDesc']);
-	#unset($site['LocDesc']);
+	unset($site['name']);
 }
 
 

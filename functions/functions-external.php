@@ -313,14 +313,14 @@ function insertLocationsOnGlpi($res)
 	
 	if($GLOBALS['debug']==1) {print ("<div class='alert alert-info'>Query: $query</div>");}
 	//update
-    try { $database->executeMultipleQuerries($query); }
+    try { $res = $database->executeQuery( $query, true ); }
     catch (Exception $e) { 
         $error =  $e->getMessage(); 
         print ("<div class='alert alert-danger'>"._('Error').": $error:$query</div>");
         return false;
     }
     # default ok
-    return true;
+    return $res;
 }
 
 /**

@@ -109,7 +109,7 @@ if($permission == "0")	{ die("<div class='alert alert-danger'>"._('You do not ha
 	}
 	else if ($permission == 3) {
 		$sp['editsubnet']= true;		//edit subnet
-		$sp['editperm']  = true;		//edit permissions
+		$sp['editperm']  = (checkAdmin(false))?true:false;		//edit permissions
 		$sp['changelog'] = true;		//changelog view
 	}
 

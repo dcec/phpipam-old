@@ -666,8 +666,7 @@ function modifySubnetDetails ($subnetDetails, $lastId = false)
     $subnetDetails['description'] = mysqli_real_escape_string($database, $subnetDetails['description']); 
 
     # set modify subnet details query
-    $query = setModifySubnetDetailsQuery ($subnetDetails, $sectionChange);
-        
+    $query = setModifySubnetDetailsQuery ($subnetDetails, $sectionChange);  
 	$log = prepareLogFromArray ($subnetDetails);																				# prepare log 
 	
     /* save old if delete */
@@ -743,12 +742,12 @@ function setModifySubnetDetailsQuery ($subnetDetails)
         $query  = 'insert into subnets '. "\n";
         # is folder?
         if($subnetDetails['isFolder']) {
-        $query .= '(`isFolder`,`subnet`, `mask`, `sectionId`, `description`, `vlanId`, `vrfId`, `masterSubnetId`, `allowRequests`, `showName`, `permissions`, `pingSubnet` '.$myFieldsInsert['query'].') ' . "\n";       
+        $query .= '(`isFolder`,`subnet`, `mask`, `sectionId`, `description`, `vlanId`, `vrfId`, `siteId`, `masterSubnetId`, `allowRequests`, `showName`, `permissions`, `pingSubnet` '.$myFieldsInsert['query'].') ' . "\n";       
         $query .= 'values (' . "\n";
         $query .= '1, ' . "\n"; 
 		}
 		else {
-        $query .= '(`subnet`, `mask`, `sectionId`, `description`, `vlanId`, `vrfId`, `masterSubnetId`, `allowRequests`, `showName`, `permissions`, `pingSubnet` '.$myFieldsInsert['query'].') ' . "\n";
+        $query .= '(`subnet`, `mask`, `sectionId`, `description`, `vlanId`, `vrfId`, `siteId`, `masterSubnetId`, `allowRequests`, `showName`, `permissions`, `pingSubnet` '.$myFieldsInsert['query'].') ' . "\n";
         $query .= 'values (' . "\n";
         }
         $query .= ' "'. $subnetDetails['subnet'] 		 .'", ' . "\n"; 
@@ -1397,7 +1396,7 @@ function updateDeviceDetails($device)
 
     /* prepare log */ 
     $log = prepareLogFromArray ($device);
-    
+    print "<div class='alert alert-danger'>$query</div>";
     /* execute */
     try { $res = $database->executeQuery( $query ); }
     catch (Exception $e) { 
@@ -1706,7 +1705,7 @@ function updateVLANDetails($vlan, $lastId = false)
 		}
     
     	$query  = 'insert into `vlans` '. "\n";
-    	$query .= '(`name`,`number`,`description` '.$myFieldsInsert['query'].') values '. "\n";
+    	$query .= '(`name`,`number`,`description`,`switch` '.$myFieldsInsert['query'].') values '. "\n";
    		$query .= '("'. $vlan['name'] .'", "'. $vlan['number'] .'", "'. $vlan['description'] .'", "'. $vlan['switch'] .'" '. $myFieldsInsert['values'] .' ); '. "\n";
 
     }
@@ -2246,11 +2245,7 @@ function updateSelectedIPaddrFields($fields)
 function getCustomFields($table)
 {
     global $database;
-    
-	if($table == "lines"){
-		$table = "devices";
-		$lines = 1;	
-	}
+        
     /* first update request */
     $query    = "show full columns from `$table`;";
 
@@ -2278,9 +2273,6 @@ function getCustomFields($table)
 	}
 	elseif($table == "devices") {
 		unset($res['id'], $res['hostname'], $res['ip_addr'], $res['type'], $res['vendor'], $res['model'], $res['version'], $res['description'], $res['sections'], $res['editDate'], $res['siteId']);
-		if (!$lines){
-			unset($res['property'], $res['isp'], $res['line_type'], $res['speed'], $res['line_termination'], $res['business_contact'], $res['technical_contact'], $res['support_contact']);
-		}
 	}
 	elseif($table == "subnets") {
 		unset($res['id'], $res['subnet'], $res['mask'], $res['sectionId'], $res['description'], $res['masterSubnetId']);
@@ -2295,7 +2287,7 @@ function getCustomFields($table)
 		unset($res['vlanId'], $res['name'], $res['number'], $res['description'], $res['switch'],$res['editDate']);		
 	}
 	elseif($table == "sites") {
-		unset($res['siteId'], $res['name'], $res['company'], $res['location'],$res['permissions'],$res['editDate'], $res['masterSiteId']);
+		unset($res['siteId'], $res['name'], $res['company'], $res['location'],$res['permissions'],$res['editDate'], $res['masterSiteId'], $res['glpi_id']);
 	}
 	
 	return $res;

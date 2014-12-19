@@ -33,7 +33,7 @@ try {
 
 	//try to login with higher credentials for search
 	$authUser = $adldap->user()->authenticate($ad['adminUsername'], $ad['adminPassword']);
-	print ("<div class='alert alert-success'>".$authUser.":".$ad['adminUsername'].":".$ad['adminPassword']."</div>");
+	#print ("<div class='alert alert-success'>".$authUser.":".$ad['adminUsername'].":".$ad['adminPassword']."</div>");
 	if ($authUser == false) {
 		throw new adLDAPException ('Invalid credentials');
 	}

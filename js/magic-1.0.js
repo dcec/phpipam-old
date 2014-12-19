@@ -1453,7 +1453,7 @@ $('.edit_subnet, button.edit_subnet, button#add_subnet').click(function () {
 
 /*    Edit subnet from ip address list
 ************************************/
-$('.edit_subnet, button.edit_subnet, button#scan_subnet').click(function () {
+$('button#scan_subnet').click(function () {
     var subnetId  = $(this).attr('data-subnetId');
     var sectionId = $(this).attr('data-sectionId');
     var action    = $(this).attr('data-action');

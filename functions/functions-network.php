@@ -2348,8 +2348,8 @@ function getAllSites($tools = false)
 	}
 		
     /* check if it came from tools and use different query! */
-    if($tools) 	{ $query = 'SELECT siteId,name,company,location,permissions,masterSiteId'.$myFieldsInsert['id'].' FROM sites ORDER BY name ASC;'; }
-    else 		{ $query = 'select * from `sites` order by `name` asc;'; }
+    if($tools) 	{ $query = 'SELECT siteId,name,company,location,permissions,masterSiteId'.$myFieldsInsert['id'].' FROM sites where used = 1 ORDER BY name ASC;'; }
+    else 		{ $query = 'select * from `sites` where used = 1 order by `name` asc;'; }
 	
     /* execute */
     try { $site = $database->getArray( $query ); }
@@ -4114,13 +4114,13 @@ function getAllChangelogs($filter = false, $expr, $limit = 100)
 	//no filter
 	if(!$filter) {
 	    $query = "select * from (
-					select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`ip_addr`,'mask',`sectionId`,`subnetId`,`ip`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
-					from `changelog` as `c`, `users` as `u`,`ipaddresses` as `ip`,`subnets` as `su`
-					where `c`.`ctype` = 'ip_addr' and `c`.`cuser` = `u`.`id` and `c`.`coid`=`ip`.`id` and `ip`.`subnetId` = `su`.`id` limit $limit
+					(select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`ip_addr`,'mask',`sectionId`,`subnetId`,`ip`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
+					from (select * from `changelog` where ctype = 'ip_addr' order by cid desc limit $limit) as `c`, `users` as `u`,`ipaddresses` as `ip`,`subnets` as `su`
+					where `c`.`cuser` = `u`.`id` and `c`.`coid`=`ip`.`id` and `ip`.`subnetId` = `su`.`id` )
 					union all
-					select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`subnet`,`mask`,`sectionId`,'subnetId',`su`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
-					from `changelog` as `c`, `users` as `u`,`subnets` as `su`
-					where `c`.`ctype` = 'subnet' and  `c`.`cuser` = `u`.`id` and `c`.`coid`=`su`.`id` limit $limit	
+					(select `cid`, `coid`,`ctype`,`real_name`,`caction`,`cresult`,`cdate`,`cdiff`,`subnet`,`mask`,`sectionId`,'subnetId',`su`.`id` as `tid`,`u`.`id` as `userid`,`su`.`isFolder` as `isFolder`,`su`.`description` as `sDescription`
+					from (select * from `changelog` where ctype = 'subnet' order by cid desc limit $limit) as `c`, `users` as `u`,`subnets` as `su`
+					where `c`.`cuser` = `u`.`id` and `c`.`coid`=`su`.`id`) 
 				) as `ips` order by `cid` desc limit $limit;";    
 	}    
 	//filter
@@ -4144,6 +4144,7 @@ function getAllChangelogs($filter = false, $expr, $limit = 100)
 
 
     # execute
+	#print ("<div class='alert alert-danger'>".$query.": $error</div>");
     try { $res = $database->getArray( $query ); }
     catch (Exception $e) { 
         $error =  $e->getMessage(); 
